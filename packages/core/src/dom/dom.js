@@ -7,6 +7,7 @@ import { assert } from "../util/assert.js"
 const domRenderer = {
   mount,
   unmount,
+  isAfter,
   create(name) {
     return document.createElement(name)
   },
@@ -50,10 +51,12 @@ const domRenderer = {
  */
 function mount(refs, target, after) {
   if (after) {
-    after.after(...refs)
+    if (!isAfter(refs, after)) {
+      after.after(...refs)
+    }
     return refs[refs.length - 1]
   } else {
-    target.append(...refs)
+    target.prepend(...refs)
   }
 }
 
@@ -68,6 +71,15 @@ function unmount(refs, target) {
       target.removeChild(ref)
     }
   }
+}
+
+/**
+ *
+ * @param {(Element | Text)[]} refs
+ * @param {Element | Text} target
+ */
+function isAfter([ref], target) {
+  return ref.previousSibling?.isSameNode(target) ?? false
 }
 
 /**

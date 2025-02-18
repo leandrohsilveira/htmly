@@ -1,5 +1,5 @@
 import type { Prop, Props } from "../component/types.js"
-import { ReadableSignal } from "../signal/types.js"
+import { ReadableSignal, Signal } from "../signal/types.js"
 
 export type Unsubscribe = () => void
 
@@ -11,6 +11,7 @@ export interface Renderer<El = unknown, Text = El, EventListener = Function> {
     after?: El | Text
   ): El | Text | undefined
   unmount(ref: (El | Text)[], target: El): void
+  isAfter(refs: (El | Text)[], target: El | Text): boolean
   subscribeEvent(name: string, value: EventListener, ref: El): Unsubscribe
   setProperty(name: string, value: unknown, ref: El): void
   createText(initial: string): Text
@@ -54,3 +55,8 @@ export type ForProps<T> = {
 export type ForElementRefs<T, El = unknown, Ref = El> = (
   item: ReadableSignal<T>
 ) => ElementRef<El, Ref>
+
+export type ForControl<T> = {
+  tracks: string[]
+  map: Record<string, { ref: ElementRef; item: Signal<T>; position: number }>
+}
