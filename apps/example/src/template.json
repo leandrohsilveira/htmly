@@ -1,0 +1,626 @@
+{
+  "html": [
+    {
+      "type": "Element",
+      "name": "h1",
+      "attributes": [],
+      "children": [
+        {
+          "type": "Expression",
+          "value": {
+            "type": "MemberExpression",
+            "start": 6,
+            "end": 16,
+            "object": {
+              "type": "ThisExpression",
+              "start": 6,
+              "end": 10
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 11,
+              "end": 16,
+              "name": "title"
+            },
+            "computed": false,
+            "optional": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "Element",
+      "name": "button",
+      "attributes": [
+        {
+          "type": "Attribute",
+          "name": "type",
+          "kind": "Literal",
+          "value": {
+            "type": "Text",
+            "value": "button"
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "onclick",
+          "kind": "Event",
+          "value": {
+            "type": "Expression",
+            "value": {
+              "type": "ArrowFunctionExpression",
+              "start": 58,
+              "end": 82,
+              "id": null,
+              "expression": true,
+              "generator": false,
+              "async": false,
+              "params": [
+                {
+                  "type": "Identifier",
+                  "start": 59,
+                  "end": 60,
+                  "name": "e"
+                }
+              ],
+              "body": {
+                "type": "CallExpression",
+                "start": 65,
+                "end": 82,
+                "callee": {
+                  "type": "MemberExpression",
+                  "start": 65,
+                  "end": 79,
+                  "object": {
+                    "type": "ThisExpression",
+                    "start": 65,
+                    "end": 69
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "start": 70,
+                    "end": 79,
+                    "name": "increment"
+                  },
+                  "computed": false,
+                  "optional": false
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "start": 80,
+                    "end": 81,
+                    "name": "e"
+                  }
+                ],
+                "optional": false
+              }
+            }
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Increment"
+        }
+      ]
+    },
+    {
+      "type": "Element",
+      "name": "input",
+      "attributes": [
+        {
+          "type": "Attribute",
+          "name": "type",
+          "kind": "Literal",
+          "value": {
+            "type": "Text",
+            "value": "number"
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "name",
+          "kind": "Literal",
+          "value": {
+            "type": "Text",
+            "value": "count"
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "id",
+          "kind": "Literal",
+          "value": {
+            "type": "Text",
+            "value": "count"
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "value",
+          "kind": "Property",
+          "value": {
+            "type": "Expression",
+            "value": {
+              "type": "CallExpression",
+              "start": 157,
+              "end": 169,
+              "callee": {
+                "type": "MemberExpression",
+                "start": 157,
+                "end": 167,
+                "object": {
+                  "type": "ThisExpression",
+                  "start": 157,
+                  "end": 161
+                },
+                "property": {
+                  "type": "Identifier",
+                  "start": 162,
+                  "end": 167,
+                  "name": "count"
+                },
+                "computed": false,
+                "optional": false
+              },
+              "arguments": [],
+              "optional": false
+            }
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "oninput",
+          "kind": "Event",
+          "value": {
+            "type": "Expression",
+            "value": {
+              "type": "MemberExpression",
+              "start": 182,
+              "end": 198,
+              "object": {
+                "type": "ThisExpression",
+                "start": 182,
+                "end": 186
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 187,
+                "end": 198,
+                "name": "handleInput"
+              },
+              "computed": false,
+              "optional": false
+            }
+          }
+        }
+      ],
+      "children": []
+    },
+    {
+      "type": "Element",
+      "name": "button",
+      "attributes": [
+        {
+          "type": "Attribute",
+          "name": "type",
+          "kind": "Literal",
+          "value": {
+            "type": "Text",
+            "value": "button"
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "onclick",
+          "kind": "Event",
+          "value": {
+            "type": "Expression",
+            "value": {
+              "type": "ArrowFunctionExpression",
+              "start": 236,
+              "end": 260,
+              "id": null,
+              "expression": true,
+              "generator": false,
+              "async": false,
+              "params": [
+                {
+                  "type": "Identifier",
+                  "start": 237,
+                  "end": 238,
+                  "name": "e"
+                }
+              ],
+              "body": {
+                "type": "CallExpression",
+                "start": 243,
+                "end": 260,
+                "callee": {
+                  "type": "MemberExpression",
+                  "start": 243,
+                  "end": 257,
+                  "object": {
+                    "type": "ThisExpression",
+                    "start": 243,
+                    "end": 247
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "start": 248,
+                    "end": 257,
+                    "name": "decrement"
+                  },
+                  "computed": false,
+                  "optional": false
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "start": 258,
+                    "end": 259,
+                    "name": "e"
+                  }
+                ],
+                "optional": false
+              }
+            }
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Decrement"
+        }
+      ]
+    },
+    {
+      "type": "Element",
+      "name": "br",
+      "attributes": [],
+      "children": []
+    },
+    {
+      "type": "Text",
+      "value": "Count is "
+    },
+    {
+      "type": "Expression",
+      "value": {
+        "type": "ConditionalExpression",
+        "start": 298,
+        "end": 337,
+        "test": {
+          "type": "BinaryExpression",
+          "start": 298,
+          "end": 320,
+          "left": {
+            "type": "BinaryExpression",
+            "start": 298,
+            "end": 314,
+            "left": {
+              "type": "CallExpression",
+              "start": 298,
+              "end": 310,
+              "callee": {
+                "type": "MemberExpression",
+                "start": 298,
+                "end": 308,
+                "object": {
+                  "type": "ThisExpression",
+                  "start": 298,
+                  "end": 302
+                },
+                "property": {
+                  "type": "Identifier",
+                  "start": 303,
+                  "end": 308,
+                  "name": "count"
+                },
+                "computed": false,
+                "optional": false
+              },
+              "arguments": [],
+              "optional": false
+            },
+            "operator": "%",
+            "right": {
+              "type": "Literal",
+              "start": 313,
+              "end": 314,
+              "value": 2,
+              "raw": "2"
+            }
+          },
+          "operator": "===",
+          "right": {
+            "type": "Literal",
+            "start": 319,
+            "end": 320,
+            "value": 0,
+            "raw": "0"
+          }
+        },
+        "consequent": {
+          "type": "Literal",
+          "start": 323,
+          "end": 329,
+          "value": "even",
+          "raw": "\"even\""
+        },
+        "alternate": {
+          "type": "Literal",
+          "start": 332,
+          "end": 337,
+          "value": "odd",
+          "raw": "\"odd\""
+        }
+      }
+    },
+    {
+      "type": "Element",
+      "name": "br",
+      "attributes": [],
+      "children": []
+    },
+    {
+      "type": "If",
+      "test": {
+        "type": "BinaryExpression",
+        "start": 351,
+        "end": 369,
+        "left": {
+          "type": "CallExpression",
+          "start": 351,
+          "end": 363,
+          "callee": {
+            "type": "MemberExpression",
+            "start": 351,
+            "end": 361,
+            "object": {
+              "type": "ThisExpression",
+              "start": 351,
+              "end": 355
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 356,
+              "end": 361,
+              "name": "count"
+            },
+            "computed": false,
+            "optional": false
+          },
+          "arguments": [],
+          "optional": false
+        },
+        "operator": ">",
+        "right": {
+          "type": "Literal",
+          "start": 366,
+          "end": 369,
+          "value": 100,
+          "raw": "100"
+        }
+      },
+      "then": [
+        {
+          "type": "Element",
+          "name": "strong",
+          "attributes": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "WOW!"
+            }
+          ]
+        }
+      ],
+      "elifs": [
+        {
+          "type": "If",
+          "test": {
+            "type": "BinaryExpression",
+            "start": 411,
+            "end": 428,
+            "left": {
+              "type": "CallExpression",
+              "start": 411,
+              "end": 423,
+              "callee": {
+                "type": "MemberExpression",
+                "start": 411,
+                "end": 421,
+                "object": {
+                  "type": "ThisExpression",
+                  "start": 411,
+                  "end": 415
+                },
+                "property": {
+                  "type": "Identifier",
+                  "start": 416,
+                  "end": 421,
+                  "name": "count"
+                },
+                "computed": false,
+                "optional": false
+              },
+              "arguments": [],
+              "optional": false
+            },
+            "operator": ">",
+            "right": {
+              "type": "Literal",
+              "start": 426,
+              "end": 428,
+              "value": 20,
+              "raw": "20"
+            }
+          },
+          "then": [
+            {
+              "type": "Text",
+              "value": "Okay\n"
+            }
+          ],
+          "otherwise": [],
+          "elifs": []
+        }
+      ],
+      "otherwise": [
+        {
+          "type": "Text",
+          "value": "Meh\n"
+        }
+      ]
+    },
+    {
+      "type": "Element",
+      "name": "br",
+      "attributes": [],
+      "children": []
+    },
+    {
+      "type": "Element",
+      "name": "ul",
+      "attributes": [],
+      "children": [
+        {
+          "type": "For",
+          "item": {
+            "type": "Identifier",
+            "start": 484,
+            "end": 488,
+            "name": "item"
+          },
+          "items": {
+            "type": "CallExpression",
+            "start": 492,
+            "end": 504,
+            "callee": {
+              "type": "MemberExpression",
+              "start": 492,
+              "end": 502,
+              "object": {
+                "type": "ThisExpression",
+                "start": 492,
+                "end": 496
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 497,
+                "end": 502,
+                "name": "items"
+              },
+              "computed": false,
+              "optional": false
+            },
+            "arguments": [],
+            "optional": false
+          },
+          "track": {
+            "type": "CallExpression",
+            "start": 513,
+            "end": 519,
+            "callee": {
+              "type": "Identifier",
+              "start": 513,
+              "end": 517,
+              "name": "item"
+            },
+            "arguments": [],
+            "optional": false
+          },
+          "children": [
+            {
+              "type": "Element",
+              "name": "li",
+              "attributes": [],
+              "children": [
+                {
+                  "type": "Element",
+                  "name": "strong",
+                  "attributes": [],
+                  "children": [
+                    {
+                      "type": "Expression",
+                      "value": {
+                        "type": "CallExpression",
+                        "start": 545,
+                        "end": 551,
+                        "callee": {
+                          "type": "Identifier",
+                          "start": 545,
+                          "end": 549,
+                          "name": "item"
+                        },
+                        "arguments": [],
+                        "optional": false
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Element",
+      "name": "br",
+      "attributes": [],
+      "children": []
+    },
+    {
+      "type": "Element",
+      "name": "button",
+      "attributes": [
+        {
+          "type": "Attribute",
+          "name": "type",
+          "kind": "Literal",
+          "value": {
+            "type": "Text",
+            "value": "button"
+          }
+        },
+        {
+          "type": "Attribute",
+          "name": "onclick",
+          "kind": "Event",
+          "value": {
+            "type": "Expression",
+            "value": {
+              "type": "MemberExpression",
+              "start": 621,
+              "end": 636,
+              "object": {
+                "type": "ThisExpression",
+                "start": 621,
+                "end": 625
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 626,
+                "end": 636,
+                "name": "toggleSort"
+              },
+              "computed": false,
+              "optional": false
+            }
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Toggle sort direction"
+        }
+      ]
+    }
+  ]
+}

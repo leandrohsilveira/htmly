@@ -1,0 +1,13 @@
+{
+  "variables": [
+    "title",
+    "items",
+    "count"
+  ],
+  "methods": [
+    "increment",
+    "decrement",
+    "toggleSort",
+    "handleInput"
+  ]
+}

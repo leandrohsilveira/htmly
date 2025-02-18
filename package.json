@@ -1,0 +1,27 @@
+{
+  "name": "htmly",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node ./src/index.js",
+    "test": "vitest run",
+    "test:ui": "vitest --ui"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@vitest/ui": "^3.0.5",
+    "prettier": "^3.5.1",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.5"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "alien-signals": "^1.0.3"
+  }
+}

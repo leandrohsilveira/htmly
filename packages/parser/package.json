@@ -1,0 +1,21 @@
+{
+  "name": "@htmly/parser",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@htmly/core": "*",
+    "acorn": "^8.14.0",
+    "ast-query": "^2.0.0",
+    "escodegen": "^2.1.0",
+    "estree-walker": "^3.0.3"
+  },
+  "exports": {
+    ".": {
+      "default": "./src/index.js"
+    }
+  }
+}

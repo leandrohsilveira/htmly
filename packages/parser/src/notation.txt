@@ -1,0 +1,6 @@
+<fragments> ::= <fragment> | <fragments> <fragment>
+<fragment> ::= <element> | <expression> | <text>
+<element> ::= "<" <tag-name> <attribute-list> ">" <fragments> "</" <tag-name> ">"
+<attribute-list> ::= | <space> <attribute> | <attribute-list> <space> <attribute>
+<attribute> ::= <attribute-name> "=\"" <value> "\"" | <attribute-name> "=" <expression>
+<expression> ::= "{" <javascript> "}"

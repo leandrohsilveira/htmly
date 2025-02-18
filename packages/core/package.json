@@ -1,0 +1,23 @@
+{
+  "name": "@htmly/core",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./renderer": {
+      "types": "./src/renderer/index.d.ts",
+      "default": "./src/renderer/index.js"
+    },
+    "./dom": {
+      "types": "./src/dom/index.d.ts",
+      "default": "./src/dom/index.js"
+    }
+  }
+}

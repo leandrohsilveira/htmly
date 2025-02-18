@@ -1,0 +1,27 @@
+<h1>{{this.title}}</h1>
+
+<button type="button" (onclick)="(e) => this.increment(e)">Increment</button>
+<input type="number" name="count" id="count" [value]="this.count()" (oninput)="this.handleInput" />
+<button type="button" (onclick)="(e) => this.decrement(e)">Decrement</button>
+<br/>
+Count is {{this.count() % 2 === 0 ? "even" : "odd"}}
+<br/>
+@if (this.count() > 100) {
+    <strong>WOW!</strong>
+} @else if (this.count() > 20) {
+    Okay
+} @else {
+    Meh
+}
+
+<br/>
+
+<ul>
+    @for (item of this.items()) track (item()) {
+        <li><strong>{{item()}}</strong></li>
+    }
+</ul>
+
+<br/>
+
+<button type="button" (onclick)="this.toggleSort">Toggle sort direction</button>

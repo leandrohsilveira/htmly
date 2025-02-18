@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "strict": true,
+        "module": "NodeNext",
+        "moduleResolution": "nodenext"
+    },
+    "exclude": [
+        "node_modules",
+        "**/node_modules",
+        "**/dist"
+    ]
+}
