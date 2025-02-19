@@ -1,9 +1,4 @@
-import {
-  constant,
-  isReadableSignal,
-  isSignal,
-  toReadableSignal
-} from "../signal/signal.js"
+import { constant, isSignal, toReadableSignal } from "../signal/signal.js"
 
 /**
  * @template {Record<string, unknown>} P

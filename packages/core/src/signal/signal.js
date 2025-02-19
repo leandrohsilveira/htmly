@@ -1,3 +1,49 @@
+import {
+  signal as _signal,
+  computed as _computed,
+  effect as _effect
+} from "@preact/signals"
+
+/**
+ * @template T
+ * @param {T} value
+ * @returns {import("./types.js").Signal<T>}
+ */
+export function signal(value) {
+  const src = _signal(value)
+  const signal = () => src.value
+  signal.set = set
+  signal.signal = true
+  return signal
+
+  /**
+   *
+   * @param {T} newValue
+   */
+  function set(newValue) {
+    src.value = newValue
+  }
+}
+
+/**
+ * @template T
+ * @param {() => T} fn
+ * @returns {import("./types.js").ReadableSignal<T>}
+ */
+export function computed(fn) {
+  const src = _computed(fn)
+  const res = () => src.value
+  res.signal = true
+  return res
+}
+
+/**
+ * @param {() => (() => void) | void} fn
+ */
+export function effect(fn) {
+  return _effect(fn)
+}
+
 /**
  * @template T
  * @param {unknown} value
@@ -5,21 +51,7 @@
  */
 export function isSignal(value) {
   return (
-    typeof value === "function" &&
-    ["bound signalGetterSetter", "bound computedGetter"].indexOf(value.name) >=
-      0
-  )
-}
-
-/**
- * @template T
- * @param {unknown} value
- * @returns {value is import("./types.js").ReadableSignal<T>}
- */
-export function isReadableSignal(value) {
-  return (
-    (typeof value === "function" && value.name === "readableSignal") ||
-    isSignal(value)
+    typeof value === "function" && "signal" in value && value.signal === true
   )
 }
 
@@ -42,17 +74,17 @@ export function isConstant(value) {
  * @returns {import("./types.js").ReadableSignal<T>}
  */
 export function toReadableSignal(value) {
-  return readableSignal
+  const signal = () => value()
 
-  function readableSignal() {
-    return value()
-  }
+  signal.signal = true
+
+  return signal
 }
 
 /**
  * @template T
  * @param {T} value
- * @returns {import("./types.js").ReadableSignal<T>}
+ * @returns {import("./types.js").Constant<T>}
  */
 export function constant(value) {
   const signal = () => value

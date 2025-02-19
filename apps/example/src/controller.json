@@ -1,13 +1,13 @@
 {
   "variables": [
-    "title",
-    "items",
-    "count"
+    "tasks",
+    "editTask"
   ],
   "methods": [
-    "increment",
-    "decrement",
-    "toggleSort",
-    "handleInput"
+    "ontoggle",
+    "onsubmit",
+    "onedit",
+    "onremove",
+    "oncancel"
   ]
 }

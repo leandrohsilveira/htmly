@@ -1,5 +1,11 @@
-import { computed, effect, effectScope, signal } from "alien-signals"
-import { constant, isConstant } from "../signal/signal.js"
+import {
+  computed,
+  constant,
+  effect,
+  isConstant,
+  isSignal,
+  signal
+} from "../signal/signal.js"
 import { assert } from "../util/assert.js"
 
 const EVENT_PROP_REGEX = /^on/
@@ -23,13 +29,15 @@ export function element(element, props = {}, child) {
       mount(renderer, target, after) {
         ref = renderer.create(element)
         for (const [name, rawValue] of Object.entries(props)) {
-          watchIfNecessary(rawValue, value => {
-            if (EVENT_PROP_REGEX.test(name) && typeof value === "function") {
-              observe(renderer.subscribeEvent(name, value, ref))
-            } else {
-              renderer.setProperty(name, value, ref)
-            }
-          })
+          observe(
+            watchIfNecessary(rawValue, value => {
+              if (EVENT_PROP_REGEX.test(name) && typeof value === "function") {
+                observe(renderer.subscribeEvent(name, value, ref))
+              } else {
+                renderer.setProperty(name, value, ref)
+              }
+            })
+          )
         }
 
         child?.mount(renderer, ref)
@@ -51,7 +59,7 @@ export function element(element, props = {}, child) {
  * @returns {import("./types.ts").ElementRef}
  */
 export function text(value) {
-  return elementRef(() => {
+  return elementRef(observe => {
     /** @type {unknown} */
     let ref
     return {
@@ -63,9 +71,11 @@ export function text(value) {
 
       mount(renderer, target, after) {
         ref = renderer.createText(String(text))
-        watchIfNecessary(value, text => {
-          renderer.setText(String(text), ref)
-        })
+        observe(
+          watchIfNecessary(value, text => {
+            renderer.setText(String(text), ref)
+          })
+        )
         renderer.mount([ref], target, lastElement(after))
       },
       unmount(renderer, target) {
@@ -81,7 +91,7 @@ export function text(value) {
  * @param {import("./types.ts").IfProps} props
  */
 export function $if({ ifs, otherwise }) {
-  return elementRef(() => {
+  return elementRef(observe => {
     /** @type {number | undefined} */
     let index
 
@@ -95,15 +105,17 @@ export function $if({ ifs, otherwise }) {
         return mounted.elements
       },
       mount(renderer, target, after) {
-        effect(() => {
-          const result = ifs.findIndex(([condition]) => condition())
-          if (index !== result) {
-            index = result
-            mounted?.unmount(renderer, target)
-            mounted = result >= 0 ? ifs[result][1] : otherwise
-            mounted?.mount(renderer, target, after)
-          }
-        })
+        observe(
+          effect(() => {
+            const result = ifs.findIndex(([condition]) => condition())
+            if (index !== result) {
+              index = result
+              mounted?.unmount(renderer, target)
+              mounted = result >= 0 ? ifs[result][1] : otherwise
+              mounted?.mount(renderer, target, after)
+            }
+          })
+        )
       },
       unmount(renderer, target) {
         mounted?.unmount(renderer, target)
@@ -117,10 +129,10 @@ export function $if({ ifs, otherwise }) {
 /**
  * @template T
  * @param {import("./types.ts").ForProps<T>} props
- * @param {import("./types.ts").ForElementRefs<T>} forRefs
+ * @param {import("./types.ts").ForElementRef<T>} forRef
  */
-export function $for({ items, trackBy }, forRefs) {
-  return elementRef(() => {
+export function $for({ items, trackBy }, forRef) {
+  return elementRef(observe => {
     let mounted = false
 
     /** @type {import("./types.ts").ForControl<T>} */
@@ -146,55 +158,63 @@ export function $for({ items, trackBy }, forRefs) {
         return refs
       },
       mount(renderer, target, after) {
-        effect(() => {
-          /** @type {import("./types.ts").ForControl<T>} */
-          const newControl = {
-            tracks: items().map(item => trackBy(() => item)),
-            map: {}
-          }
-
-          for (const track of control.tracks) {
-            if (newControl.tracks.indexOf(track) < 0) {
-              control.map[track].ref.unmount(renderer, target)
-              delete control.map[track]
+        observe(
+          effect(() => {
+            /** @type {import("./types.ts").ForControl<T>} */
+            const newControl = {
+              tracks: items().map(item => trackBy(() => item)),
+              map: {}
             }
-          }
 
-          for (let i = 0; i < items().length; i++) {
-            const item = items()[i]
-            const track = newControl.tracks[i]
-            const currentTrack = control.tracks[i]
-            if (!control.map[track]) {
-              const state = signal(item)
-              const ref = forRefs(state)
-              ref.mount(
-                renderer,
-                target,
-                control.map[control.tracks[i - 1]]?.ref ?? after
-              )
-              control.map[track] = { item: state, position: i, ref }
-              newControl.map[track] = control.map[track]
-            } else if (track !== currentTrack) {
-              const next = control.map[track]
-              next.item(item)
-
-              const lastRef = lastElement(
-                newControl.map[newControl.tracks[i - 1]]?.ref ?? after
-              )
-              newControl.map[track] = next
-              if (!renderer.isAfter(next.ref.elements, lastRef)) {
-                renderer.unmount(next.ref.elements, target)
-                renderer.mount(next.ref.elements, target, lastRef)
+            for (const track of control.tracks) {
+              if (newControl.tracks.indexOf(track) < 0) {
+                control.map[track].ref.unmount(renderer, target)
+                delete control.map[track]
               }
-            } else {
-              control.map[track].item(item)
-              newControl.map[track] = control.map[track]
             }
-          }
 
-          control.tracks = newControl.tracks
-        })
+            items().forEach((item, i) => {
+              const track = newControl.tracks[i]
+              const currentTrack = control.tracks[i]
+              if (!control.map[track]) {
+                const state = signal(item)
+                const ref = forRef(state)
+                ref.mount(
+                  renderer,
+                  target,
+                  control.map[control.tracks[i - 1]]?.ref ?? after
+                )
+                control.map[track] = { item: state, ref }
+                newControl.map[track] = control.map[track]
+              } else if (track !== currentTrack) {
+                const next = control.map[track]
+
+                const lastRef = lastElement(
+                  newControl.map[newControl.tracks[i - 1]]?.ref ?? after
+                )
+                newControl.map[track] = next
+                if (!renderer.isAfter(next.ref.elements, lastRef)) {
+                  renderer.unmount(next.ref.elements, target)
+                  renderer.mount(next.ref.elements, target, lastRef)
+                }
+              } else {
+                newControl.map[track] = control.map[track]
+              }
+              newControl.map[track].item.set(item)
+            })
+
+            control.tracks = newControl.tracks
+          })
+        )
         mounted = true
+
+        /**
+         *
+         * @param {number} itemIndex
+         */
+        function itemAt(itemIndex) {
+          return computed(() => items()[itemIndex])
+        }
       },
       unmount(renderer, target) {
         for (const mapped of Object.values(control.map)) {
@@ -206,6 +226,18 @@ export function $for({ items, trackBy }, forRefs) {
       }
     }
   })
+
+  /**
+   *
+   * @param {import("../signal/types.js").ReadableSignal<T>} item
+   */
+  function scopedForRef(item) {
+    /** @type {import("./types.ts").ElementRef | undefined} */
+    let ref = forRef(item)
+
+    assert(ref !== undefined, "[scopeForRefs] ref undefined")
+    return /** @type {const} */ ([ref, () => {}])
+  }
 }
 
 /**
@@ -249,28 +281,30 @@ export function component(controller, componentRefs) {
  * @returns {import("./types.ts").ElementRef}
  */
 export function fragment(...children) {
-  return {
-    name: "fragment",
-    get elements() {
-      const refs = []
-      for (const child of children) {
-        refs.push(...child.elements)
-      }
-      return refs
-    },
-    mount(renderer, target, after) {
-      let _after = after
-      for (const child of children) {
-        child.mount(renderer, target, _after)
-        _after = child
-      }
-    },
-    unmount(renderer, target) {
-      for (const child of children) {
-        child.unmount(renderer, target)
+  return elementRef(() => {
+    return {
+      name: "fragment",
+      get elements() {
+        const refs = []
+        for (const child of children) {
+          refs.push(...child.elements)
+        }
+        return refs
+      },
+      mount(renderer, target, after) {
+        let _after = after
+        for (const child of children) {
+          child.mount(renderer, target, _after)
+          _after = child
+        }
+      },
+      unmount(renderer, target) {
+        for (const child of children) {
+          child.unmount(renderer, target)
+        }
       }
     }
-  }
+  })
 }
 
 /**
@@ -292,9 +326,6 @@ export function render(renderer, target, component, props) {
  * @returns {import("./types.ts").ElementRef}
  */
 function elementRef(supplier) {
-  /** @type {(() => void) | undefined} */
-  let stopScope = undefined
-
   /** @type {import("./types.js").Unsubscribe[]} */
   const observers = []
 
@@ -306,16 +337,13 @@ function elementRef(supplier) {
       return ref.elements
     },
     mount(renderer, target, after) {
-      stopScope = effectScope(() => {
-        ref.mount(renderer, target, after)
-      })
+      ref.mount(renderer, target, after)
     },
     unmount(renderer, target) {
       ref.unmount(renderer, target)
       for (const unsubscribe of observers) {
         unsubscribe()
       }
-      stopScope?.()
     }
   }
 
@@ -344,14 +372,19 @@ export function event(listener) {
 function watchIfNecessary(value, fn) {
   if (isConstant(value)) {
     fn(value())
-  }
-  if (typeof value === "function") {
-    effect(() => {
-      const resolved = computed(() => value())
+    return () => {}
+  } else if (isSignal(value)) {
+    return effect(() => {
+      fn(value())
+    })
+  } else if (typeof value === "function") {
+    const resolved = computed(() => value())
+    return effect(() => {
       fn(resolved())
     })
   } else {
     fn(value)
+    return () => {}
   }
 }
 

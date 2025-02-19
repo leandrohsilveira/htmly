@@ -1,4 +1,4 @@
-import type { Prop, Props } from "../component/types.js"
+import type { Props } from "../component/types.js"
 import { ReadableSignal, Signal } from "../signal/types.js"
 
 export type Unsubscribe = () => void
@@ -52,11 +52,17 @@ export type ForProps<T> = {
   trackBy(item: () => T): string
 }
 
-export type ForElementRefs<T, El = unknown, Ref = El> = (
+export type ForElementRef<T, El = unknown, Ref = El> = (
   item: ReadableSignal<T>
 ) => ElementRef<El, Ref>
 
 export type ForControl<T> = {
   tracks: string[]
-  map: Record<string, { ref: ElementRef; item: Signal<T>; position: number }>
+  map: Record<
+    string,
+    {
+      ref: ElementRef
+      item: Signal<T>
+    }
+  >
 }

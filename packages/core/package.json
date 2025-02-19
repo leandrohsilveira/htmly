@@ -19,5 +19,8 @@
       "types": "./src/dom/index.d.ts",
       "default": "./src/dom/index.js"
     }
+  },
+  "dependencies": {
+    "@preact/signals": "^2.0.1"
   }
 }

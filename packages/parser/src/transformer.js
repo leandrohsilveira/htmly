@@ -46,7 +46,7 @@ export function transform(template, controller, options) {
   if (signals.size > 0) {
     imports.push(
       genImportDeclaration(
-        "alien-signals",
+        "@htmly/core",
         ...Array.from(signals).map(signal => genImportSpecifier(signal))
       )
     )

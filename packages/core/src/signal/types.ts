@@ -1,5 +1,9 @@
-export type ReadableSignal<T> = () => T
+export type ReadableSignal<T> = (() => T) & {
+  signal: boolean
+}
 
-export type Signal<T> = ReadableSignal<T> & ((value: T) => void)
+export type Signal<T> = ReadableSignal<T> & {
+  set(value: T): void
+}
 
-export type Constant<T> = ReadableSignal<T> & { constant: true }
+export type Constant<T> = (() => T) & { constant: boolean }
