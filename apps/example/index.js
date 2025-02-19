@@ -1,29 +1,28 @@
 import fs from "node:fs"
-import { analyseController, parseAst, transform } from "@htmly/parser"
+import process from "node:process"
+import path from "node:path"
+import { parseAst, transform, scanComponents } from "@htmly/parser"
 
-const templateContent = fs.readFileSync("./src/app.component.html")
+/**
+ * @param {string} scanDir
+ * @param {string} outDir
+ */
+async function run(scanDir, outDir) {
+  const cwd = process.cwd()
+  const infos = await scanComponents(scanDir, outDir, { cwd })
 
-const ast = parseAst(templateContent.toString("utf-8"))
-fs.writeFileSync("./src/template.json", JSON.stringify(ast, null, 2), "utf-8")
+  for (const [name, info] of Object.entries(infos)) {
+    const templateContent = fs.readFileSync(info.template)
+    const ast = parseAst(templateContent.toString("utf-8"))
+    const js = transform(
+      ast.html,
+      path.relative(info.component, info.controller),
+      infos,
+      outDir,
+      { cwd }
+    )
+    fs.writeFileSync(info.component, js, "utf-8")
+  }
+}
 
-const componentContent = fs.readFileSync("./src/app.component.js")
-const analyzeResult = analyseController(componentContent.toString("utf-8"), {
-  ecmaVersion: 2022,
-  sourceType: "module"
-})
-fs.writeFileSync(
-  "./src/controller.json",
-  JSON.stringify(analyzeResult, null, 2),
-  "utf-8"
-)
-
-const js = transform(
-  ast.html,
-  {
-    path: "./app.component.js",
-    variables: analyzeResult.variables,
-    methods: analyzeResult.methods
-  },
-  { ecmaVersion: 2022 }
-)
-fs.writeFileSync("./src/app.js", js, "utf-8")
+run("./src", "./src/.htmly")

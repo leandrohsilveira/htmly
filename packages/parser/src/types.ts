@@ -87,3 +87,26 @@ export interface AnalyzeResult {
 export interface TransformController extends AnalyzeResult {
   path: string
 }
+
+export interface BaseOptions {
+  cwd?: string
+}
+
+export interface ScanOptions extends BaseOptions {
+  prefix?: string
+}
+
+export interface TransformOptions extends BaseOptions {}
+
+export interface FoundComponentInfo {
+  baseName: string
+  template?: string
+  controller?: string
+}
+
+export interface ComponentInfo {
+  baseName: string
+  template: string
+  component: string
+  controller: string
+}
