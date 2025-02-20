@@ -97,11 +97,10 @@ export interface ScanOptions extends BaseOptions {
   prefix?: string
 }
 
-export interface TransformOptions extends BaseOptions {
+export interface TransformOptions {
   template: AstNode[]
   info: ComponentInfo
   infos: Record<string, ComponentInfo>
-  outDir: string
 }
 
 export interface FoundComponentInfo {

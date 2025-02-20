@@ -1,5 +1,4 @@
 import { assert } from "@htmly/core"
-import { generate } from "escodegen"
 import path from "node:path"
 import {
   genArrayExpression,
@@ -23,7 +22,7 @@ import { relative } from "./util.js"
 /**
  *
  * @param {import("./types.js").TransformOptions} options
- * @returns {string}
+ * @returns {import("acorn").Program}
  */
 export function transform({ template, info, infos }) {
   const controller = relative(path.dirname(info.component), info.controller)
@@ -72,7 +71,7 @@ export function transform({ template, info, infos }) {
 
   const toReturn = fragment ? fragment : genLiteral(null)
 
-  return generate({
+  return {
     sourceType: "module",
     start: 0,
     end: 0,
@@ -100,7 +99,7 @@ export function transform({ template, info, infos }) {
         )
       )
     ]
-  })
+  }
 
   /**
    * @param {import("./types.js").AstNode} ast
