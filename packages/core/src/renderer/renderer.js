@@ -6,51 +6,86 @@ import {
   isSignal,
   signal
 } from "../signal/signal.js"
+import { isArrayEmpty } from "../util/array.js"
 import { assert } from "../util/assert.js"
-
-const EVENT_PROP_REGEX = /^on/
 
 /**
  * @param {string} element
- * @param {import("../component/index.js").Props<Record<string, unknown>>} [props]
- * @param {import("./types.ts").ElementRef} [child]
- * @returns {import("./types.ts").ElementRef}
  */
-export function element(element, props = {}, child) {
-  return elementRef(observe => {
-    /** @type {unknown} */
-    let ref
-    return {
-      name: element,
-      get elements() {
-        assert(ref, `${element} element get refs() called before mounting`)
-        return [ref]
-      },
-      mount(renderer, target, after) {
-        ref = renderer.create(element)
-        for (const [name, rawValue] of Object.entries(props)) {
+export function $e(element) {
+  return el
+
+  /**
+   * @param {import("./types.ts").ElementInput<*>} [input]
+   * @returns {import("./types.ts").ElementRef}
+   */
+  function el({ props, attrs, events, child } = {}) {
+    return elementRef(observe => {
+      /** @type {unknown} */
+      let ref
+      return {
+        name: element,
+        get elements() {
+          assert(ref, `${element} element get refs() called before mounting`)
+          return [ref]
+        },
+        mount(renderer, target, after) {
+          ref = renderer.create(element)
+          for (const [name, value] of Object.entries(attrs ?? {})) {
+            renderer.setProperty(name, value, ref)
+          }
+          /** @type {[() => boolean, () => string[]][]} */
+          let classMappers = []
+          for (const [name, value] of Object.entries(props ?? {})) {
+            if (name === "class") {
+              classMappers.push([() => true, () => value()])
+              continue
+            }
+            if (/^class\./.test(name)) {
+              const className = name.replace(/^class\./, "")
+              classMappers.push([() => value(), () => [className]])
+              continue
+            }
+            if (isConstant(value)) {
+              renderer.setProperty(name, value(), ref)
+            } else {
+              observe(
+                effect(() => {
+                  renderer.setProperty(name, value(), ref)
+                })
+              )
+            }
+          }
           observe(
-            watchIfNecessary(rawValue, value => {
-              if (EVENT_PROP_REGEX.test(name) && typeof value === "function") {
-                observe(renderer.subscribeEvent(name, value, ref))
-              } else {
-                renderer.setProperty(name, value, ref)
+            effect(() => {
+              if (classMappers.length > 0) {
+                /** @type {string[]} */
+                const classes = []
+                for (const [test, getter] of classMappers) {
+                  if (test()) {
+                    classes.push(...getter())
+                  }
+                }
+                renderer.setProperty("class", classes, ref)
               }
             })
           )
+          for (const [name, listener] of Object.entries(events ?? {})) {
+            observe(renderer.subscribeEvent(name, listener, ref))
+          }
+
+          child?.mount(renderer, ref)
+
+          renderer.mount([ref], target, lastElement(after))
+        },
+        unmount(renderer, target) {
+          child?.unmount(renderer, ref)
+          renderer.unmount([ref], target)
+          ref = undefined
         }
-
-        child?.mount(renderer, ref)
-
-        renderer.mount([ref], target, lastElement(after))
-      },
-      unmount(renderer, target) {
-        child?.unmount(renderer, ref)
-        renderer.unmount([ref], target)
-        ref = undefined
       }
-    }
-  })
+    })
+  }
 }
 
 /**
@@ -58,7 +93,7 @@ export function element(element, props = {}, child) {
  * @param {(() => string | number | boolean) | string | number | boolean } value
  * @returns {import("./types.ts").ElementRef}
  */
-export function text(value) {
+export function $t(value) {
   return elementRef(observe => {
     /** @type {unknown} */
     let ref
@@ -70,7 +105,7 @@ export function text(value) {
       },
 
       mount(renderer, target, after) {
-        ref = renderer.createText(String(text))
+        ref = renderer.createText(String($t))
         observe(
           watchIfNecessary(value, text => {
             renderer.setText(String(text), ref)
@@ -131,9 +166,12 @@ export function $if({ ifs, otherwise }) {
  * @param {import("./types.ts").ForProps<T>} props
  * @param {import("./types.ts").ForElementRef<T>} forRef
  */
-export function $for({ items, trackBy }, forRef) {
+export function $for({ items, trackBy, empty }, forRef) {
   return elementRef(observe => {
     let mounted = false
+
+    /** @type {import("./types.ts").ElementRef | undefined} */
+    let emptyMounted
 
     /** @type {import("./types.ts").ForControl<T>} */
     const control = {
@@ -145,6 +183,7 @@ export function $for({ items, trackBy }, forRef) {
       name: "$for",
       get elements() {
         assert(mounted, "$for get refs() called before mounting")
+        if (emptyMounted) return emptyMounted.elements
         /** @type {unknown[]} */
         const refs = []
         for (const track of control.tracks) {
@@ -160,6 +199,22 @@ export function $for({ items, trackBy }, forRef) {
       mount(renderer, target, after) {
         observe(
           effect(() => {
+            if (!emptyMounted && isArrayEmpty(items()) && empty) {
+              for (const track of control.tracks) {
+                control.map[track].ref.unmount(renderer, target)
+              }
+              control.tracks = []
+              control.map = {}
+              empty.mount(renderer, target, after)
+              emptyMounted = empty
+              return
+            } else if (emptyMounted && isArrayEmpty(items())) {
+              return
+            } else if (emptyMounted) {
+              emptyMounted.unmount(renderer, target)
+              emptyMounted = undefined
+            }
+
             /** @type {import("./types.ts").ForControl<T>} */
             const newControl = {
               tracks: items().map(item => trackBy(() => item)),
@@ -226,28 +281,16 @@ export function $for({ items, trackBy }, forRef) {
       }
     }
   })
-
-  /**
-   *
-   * @param {import("../signal/types.js").ReadableSignal<T>} item
-   */
-  function scopedForRef(item) {
-    /** @type {import("./types.ts").ElementRef | undefined} */
-    let ref = forRef(item)
-
-    assert(ref !== undefined, "[scopeForRefs] ref undefined")
-    return /** @type {const} */ ([ref, () => {}])
-  }
 }
 
 /**
- * @template {Record<string, unknown>} P
+ * @template {import("../component/types.js").ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
- * @param {import("../component/types.js").Component<P, C>} controller
+ * @param {import("../component/types.js").Component<I, C>} controller
  * @param {import("./types.ts").ComponentElementRef<C>} componentRefs
- * @returns {import("./types.ts").ComponentRef<P>}
+ * @returns {import("./types.ts").ComponentRef<I>}
  */
-export function component(controller, componentRefs) {
+export function $c(controller, componentRefs) {
   return props =>
     elementRef(() => {
       /** @type {import("./types.ts").ElementRef | undefined | null} */
@@ -280,7 +323,7 @@ export function component(controller, componentRefs) {
  * @param  {...import("./types.ts").ElementRef} children
  * @returns {import("./types.ts").ElementRef}
  */
-export function fragment(...children) {
+export function $f(...children) {
   return elementRef(() => {
     return {
       name: "fragment",
@@ -312,7 +355,7 @@ export function fragment(...children) {
  * @param {import("./types.js").Renderer} renderer
  * @param {unknown} target
  * @param {import("./types.js").ComponentRef<P>} component
- * @param {import("../component/types.js").Props<P>} props
+ * @param {import("../component/types.js").ComponentInput<P>} props
  * @returns {import("./types.js").Unsubscribe}
  */
 export function render(renderer, target, component, props) {

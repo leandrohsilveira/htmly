@@ -1,7 +1,21 @@
-import type { Props } from "../component/types.js"
+import type {
+  ComponentInput,
+  ComponentInputDefinition,
+  InputAttrs,
+  InputDefinition,
+  InputEvents,
+  InputProps
+} from "../component/types.js"
 import { ReadableSignal, Signal } from "../signal/types.js"
 
 export type Unsubscribe = () => void
+
+export type ElementInput<T extends InputDefinition, El = unknown, Ref = El> = {
+  attrs?: InputAttrs<T["attrs"]>
+  props?: InputProps<T["props"]>
+  events?: InputEvents<T["events"]>
+  child?: ElementRef<El, Ref>
+}
 
 export interface Renderer<El = unknown, Text = El, EventListener = Function> {
   create(name: string): El
@@ -31,10 +45,10 @@ export interface ElementRef<El = unknown, Ref = El> {
 }
 
 export type ComponentRef<
-  P extends Record<string, unknown>,
+  P extends ComponentInputDefinition,
   El = unknown,
   Ref = El
-> = (props: Props<P>) => ElementRef<El, Ref>
+> = (props: ComponentInput<P>) => ElementRef<El, Ref>
 
 export type ComponentElementRef<
   Ctx extends Record<string, unknown>,
@@ -47,9 +61,10 @@ export type IfProps<El = unknown, Ref = El> = {
   otherwise?: ElementRef<El, Ref>
 }
 
-export type ForProps<T> = {
+export type ForProps<T, El = unknown, Ref = El> = {
   items(): T[]
   trackBy(item: () => T): string
+  empty?: ElementRef<El, Ref>
 }
 
 export type ForElementRef<T, El = unknown, Ref = El> = (

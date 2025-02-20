@@ -14,7 +14,9 @@ import {
   genLiteral,
   genObjectExpression,
   genProperty,
-  genReturn
+  genReturn,
+  genVariableDeclaration,
+  genVariableDeclarator
 } from "./ast.js"
 import { assert } from "@htmly/core"
 
@@ -31,13 +33,12 @@ export function transform(template, controller, infos, outDir, options) {
   const cwd = options?.cwd ?? process.cwd()
   const out = path.resolve(cwd, outDir)
   const controllerIdentifier = genIdentifier("controller")
-  const componentIdentifier = genIdentifier("component")
-  const elementIdentifier = genIdentifier("element")
-  const textIdentifier = genIdentifier("text")
+  const componentIdentifier = genIdentifier("$c")
+  const elementIdentifier = genIdentifier("$e")
+  const textIdentifier = genIdentifier("$t")
   const ifIdentifier = genIdentifier("$if")
   const forIdentifier = genIdentifier("$for")
-  const fragmentIdentifier = genIdentifier("fragment")
-  const eventIdentifier = genIdentifier("event")
+  const fragmentIdentifier = genIdentifier("$f")
 
   const renderers = new Set([componentIdentifier])
 
@@ -46,6 +47,9 @@ export function transform(template, controller, infos, outDir, options) {
 
   /** @type {import("acorn").ImportDeclaration[]} */
   const imports = []
+
+  /** @type {Set<string>} */
+  const elements = new Set()
 
   const fragment = genFragment(...template)
 
@@ -74,6 +78,19 @@ export function transform(template, controller, infos, outDir, options) {
     type: "Program",
     body: [
       ...imports,
+      ...(elements.size > 0
+        ? [
+            genVariableDeclaration(
+              "const",
+              ...Array.from(elements).map(el =>
+                genVariableDeclarator(
+                  genIdentifier(el),
+                  genCallExpression(elementIdentifier, genLiteral(el))
+                )
+              )
+            )
+          ]
+        : []),
       genDefaultExport(
         genCallExpression(
           componentIdentifier,
@@ -110,20 +127,41 @@ export function transform(template, controller, infos, outDir, options) {
    */
   function genElement(element) {
     if (element.name === "") return genFragment(...element.children)
+    elements.add(element.name)
     renderers.add(elementIdentifier)
 
-    const properties = genAttributes(element.attributes)
+    const { attrs, props, events } = genAttributes(element.attributes)
 
-    const children = genFragment(...element.children)
+    const child = genFragment(...element.children)
 
-    return genCallExpression(
-      elementIdentifier,
-      genLiteral(element.name),
-      ...(element.attributes.length > 0 || element.children.length > 0
-        ? [genObjectExpression(...properties)]
-        : []),
-      ...(children ? [children] : [])
-    )
+    /** @type {import("acorn").CallExpression['arguments']} */
+    const params = []
+
+    if (child || attrs.length > 0 || props.length > 0 || events.length > 0) {
+      /** @type {import("acorn").Property[]} */
+      const objectProps = []
+      if (attrs.length > 0) {
+        objectProps.push(
+          genProperty(genIdentifier("attrs"), genObjectExpression(...attrs))
+        )
+      }
+      if (props.length > 0) {
+        objectProps.push(
+          genProperty(genIdentifier("props"), genObjectExpression(...props))
+        )
+      }
+      if (events.length > 0) {
+        objectProps.push(
+          genProperty(genIdentifier("events"), genObjectExpression(...events))
+        )
+      }
+      if (child) {
+        objectProps.push(genProperty(genIdentifier("child"), child))
+      }
+      params.push(genObjectExpression(...objectProps))
+    }
+
+    return genCallExpression(genIdentifier(element.name), ...params)
   }
 
   /**
@@ -238,39 +276,79 @@ export function transform(template, controller, infos, outDir, options) {
     const varName = tagName.replace(/[-.]/g, "_")
     const identifier = genIdentifier(varName)
 
-    // TODO: resolve import
+    const { attrs, props, events } = genAttributes(ast.attributes)
 
-    return genCallExpression(
-      identifier,
-      genObjectExpression(...genAttributes(ast.attributes))
-    )
+    /** @type {import("acorn").Property[]} */
+    const objectProps = []
+    if (attrs.length > 0) {
+      objectProps.push(
+        genProperty(genIdentifier("attrs"), genObjectExpression(...attrs))
+      )
+    }
+    if (props.length > 0) {
+      objectProps.push(
+        genProperty(genIdentifier("props"), genObjectExpression(...props))
+      )
+    }
+    if (events.length > 0) {
+      objectProps.push(
+        genProperty(genIdentifier("events"), genObjectExpression(...events))
+      )
+    }
+
+    return genCallExpression(identifier, genObjectExpression(...objectProps))
   }
 
   /**
    *
    * @param {import("./types.js").AstNodeAttribute[]} attributes
-   * @returns {import("acorn").Property[]}
+   * @returns {Record<'attrs' | 'props' | 'events', import("acorn").Property[]>}
    */
   function genAttributes(attributes) {
-    return attributes.map(attr => {
-      const nameIdentifier = genIdentifier(attr.name)
-      switch (attr.kind) {
-        case "Literal":
-          return genProperty(nameIdentifier, genLiteral(attr.value.value))
-        case "Flag":
-          return genProperty(nameIdentifier, genLiteral(true))
-        case "Property":
-          return genProperty(
-            nameIdentifier,
-            genArrowFunction({}, attr.value.value)
-          )
-        case "Event":
-          renderers.add(eventIdentifier)
-          return genProperty(
-            nameIdentifier,
-            genCallExpression(eventIdentifier, attr.value.value)
-          )
-      }
-    })
+    return attributes.reduce(
+      (result, attr) => {
+        const nameLiteral = genLiteral(attr.name)
+        switch (attr.kind) {
+          case "Literal":
+            return {
+              ...result,
+              attrs: [
+                ...result.attrs,
+                genProperty(nameLiteral, genLiteral(attr.value.value))
+              ]
+            }
+          case "Flag":
+            return {
+              ...result,
+              attrs: [
+                ...result.attrs,
+                genProperty(nameLiteral, genLiteral(true))
+              ]
+            }
+          case "Property":
+            return {
+              ...result,
+              props: [
+                ...result.props,
+                genProperty(nameLiteral, genArrowFunction({}, attr.value.value))
+              ]
+            }
+
+          case "Event":
+            return {
+              ...result,
+              events: [
+                ...result.events,
+                genProperty(nameLiteral, attr.value.value)
+              ]
+            }
+        }
+      },
+      /** @type {Record<'attrs' | 'props' | 'events', import("acorn").Property[]>} */ ({
+        attrs: [],
+        props: [],
+        events: []
+      })
+    )
   }
 }

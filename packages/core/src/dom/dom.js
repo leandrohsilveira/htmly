@@ -1,6 +1,8 @@
 import { render as _render } from "../renderer/index.js"
 import { assert } from "../util/assert.js"
 
+const elementProps = ["value", "disabled", "checked"]
+
 /**
  * @type {import("../renderer/types.js").Renderer<Element, Text, (e: Event) => void>}
  */
@@ -18,11 +20,26 @@ const domRenderer = {
     ref.data = text
   },
   setProperty(name, value, ref) {
-    if (name === "value" && "value" in ref) {
-      ref.value = value
-      return
+    switch (name) {
+      case "class":
+        if (Array.isArray(value)) {
+          ref.classList
+            .values()
+            .filter(clazz => !value.some(val => val === clazz))
+            .forEach(item => ref.classList.remove(item))
+          return value.forEach(val => ref.classList.add(val))
+        }
+        if (typeof value === "string") return (ref.className = value)
+      case "value":
+      case "disabled":
+      case "checked":
+        if (name in ref) return Object.assign(ref, { [name]: value })
+        break
+      default:
+        break
     }
-    ref.setAttribute(name, String(value))
+    if (value === null || value === undefined) return ref.removeAttribute(name)
+    return ref.setAttribute(name, String(value))
   },
   subscribeEvent(name, listener, ref) {
     const evtName = name.replace(/^on/, "")
@@ -83,10 +100,10 @@ function isAfter([ref], target) {
 }
 
 /**
- * @template {Record<string, unknown>} P
+ * @template {import("../component/types.js").InputDefinition} P
  * @param {Element | string} target
  * @param {import("../renderer/types.js").ComponentRef<P>} component
- * @param {import("../component/types.js").Props<P>} props
+ * @param {import("../component/types.js").ComponentInput<P>} props
  */
 export function render(target, component, props) {
   const targetEl =

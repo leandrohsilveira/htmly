@@ -1,16 +1,22 @@
 import { constant, isSignal, toReadableSignal } from "../signal/signal.js"
 
 /**
- * @template {Record<string, unknown>} P
+ * @template {import("./types.js").ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
- * @param {import("./types.js").Controller<P, C>} controller
- * @returns {import("./types.js").Component<P, C>}
+ * @param {import("./types.js").Controller<I, C>} controller
+ * @returns {import("./types.js").Component<I, C>}
  */
 export function component(controller) {
-  return props => {
+  /**
+   * @param {*} input
+   */
+  return ({ props, events }) => {
     const context = controller({
       get props() {
-        return proxify(props)
+        return proxifyProps(props)
+      },
+      get events() {
+        return proxifyEvents(events)
       }
     })
 
@@ -23,7 +29,7 @@ export function component(controller) {
  * @param {*} input
  * @return {*}
  */
-function proxify(input) {
+function proxifyProps(input) {
   return new Proxy(input, {
     get(target, prop) {
       if (prop in target) {
@@ -33,6 +39,23 @@ function proxify(input) {
         return constant(value)
       }
       return constant(undefined)
+    }
+  })
+}
+
+/**
+ *
+ * @param {*} input
+ * @return {*}
+ */
+function proxifyEvents(input) {
+  return new Proxy(input, {
+    get(target, prop) {
+      if (prop in target) {
+        const value = target[String(prop)]
+        if (typeof value === "function") return value
+      }
+      return () => {}
     }
   })
 }

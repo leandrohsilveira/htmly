@@ -255,6 +255,36 @@ export function genCallExpression(callee, ...args) {
 }
 
 /**
+ * @param {import("acorn").VariableDeclarator['id']} id
+ * @param {import("acorn").VariableDeclarator['init']} [init]
+ * @returns {import("acorn").VariableDeclarator}
+ */
+export function genVariableDeclarator(id, init) {
+  return {
+    type: "VariableDeclarator",
+    start: 0,
+    end: 0,
+    id,
+    init
+  }
+}
+
+/**
+ * @param {import("acorn").VariableDeclaration['kind']} kind
+ * @param {...import("acorn").VariableDeclaration['declarations'][number]} declarations
+ * @returns {import("acorn").VariableDeclaration}
+ */
+export function genVariableDeclaration(kind, ...declarations) {
+  return {
+    type: "VariableDeclaration",
+    start: 0,
+    end: 0,
+    kind,
+    declarations
+  }
+}
+
+/**
  *
  * @param {string} name
  * @returns {import("acorn").Identifier}
