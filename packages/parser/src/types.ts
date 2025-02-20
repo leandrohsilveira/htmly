@@ -77,6 +77,7 @@ export interface AstNodeFor extends AbstractAstNode {
   items: Expression
   track: Expression
   children: AstNode[]
+  empty: AstNode[]
 }
 
 export interface AnalyzeResult {

@@ -239,6 +239,15 @@ export function transform(template, controller, infos, outDir, options) {
       "[Transform] for item expression should be an identifier"
     )
 
+    /** @type {import("acorn").Property[]} */
+    const optional = []
+
+    const emptyFragment = genFragment(...ast.empty)
+
+    if (emptyFragment) {
+      optional.push(genProperty(genIdentifier("empty"), emptyFragment))
+    }
+
     return genCallExpression(
       forIdentifier,
       genObjectExpression(
@@ -246,7 +255,8 @@ export function transform(template, controller, infos, outDir, options) {
         genProperty(
           genIdentifier("trackBy"),
           genArrowFunction({}, ast.track, item)
-        )
+        ),
+        ...optional
       ),
       genArrowFunction({}, fragment, item)
     )

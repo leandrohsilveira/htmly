@@ -206,14 +206,12 @@ export function parseAst(content) {
       eat("of")
       skipWhitespace()
       const items = parseJavaScript(
-        remaining => !/^[\s\n]?\)[\s\n]?track[\s\n]?\(/.test(remaining)
+        remaining => !/^[\s\n]?;[\s\n]?track[\s\n]/.test(remaining)
       )
       skipWhitespace()
-      eat(")")
+      eat(";")
       skipWhitespace()
       eat("track")
-      skipWhitespace()
-      eat("(")
       skipWhitespace()
       const track = parseJavaScript(
         remaining => !/^[\s\n]?\)[\s\n]?\{/.test(remaining)
@@ -224,12 +222,25 @@ export function parseAst(content) {
       skipWhitespace()
       const children = parseFragments(() => !match("}"))
       eat("}")
+      skipWhitespace()
+      /** @type {import("./types.js").AstNode[]} */
+      let empty = []
+      if (match("@empty")) {
+        eat("@empty")
+        skipWhitespace()
+        eat("{")
+        skipWhitespace()
+        empty = parseFragments(() => !match("}"))
+        skipWhitespace()
+        eat("}")
+      }
       return {
         type: "For",
         item,
         items,
         track,
-        children
+        children,
+        empty
       }
     }
   }
