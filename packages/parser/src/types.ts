@@ -97,12 +97,18 @@ export interface ScanOptions extends BaseOptions {
   prefix?: string
 }
 
-export interface TransformOptions extends BaseOptions {}
+export interface TransformOptions extends BaseOptions {
+  template: AstNode[]
+  info: ComponentInfo
+  infos: Record<string, ComponentInfo>
+  outDir: string
+}
 
 export interface FoundComponentInfo {
   baseName: string
   template?: string
   controller?: string
+  styles?: string
 }
 
 export interface ComponentInfo {
@@ -110,4 +116,5 @@ export interface ComponentInfo {
   template: string
   component: string
   controller: string
+  styles?: string
 }

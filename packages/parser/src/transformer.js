@@ -1,6 +1,6 @@
-import path from "node:path"
-import process from "node:process"
+import { assert } from "@htmly/core"
 import { generate } from "escodegen"
+import path from "node:path"
 import {
   genArrayExpression,
   genArrowFunction,
@@ -18,20 +18,15 @@ import {
   genVariableDeclaration,
   genVariableDeclarator
 } from "./ast.js"
-import { assert } from "@htmly/core"
+import { relative } from "./util.js"
 
 /**
  *
- * @param {import("./types.js").Ast['html']} template
- * @param {string} controller
- * @param {Record<string, import("./types.js").ComponentInfo>} infos
- * @param {string} outDir
  * @param {import("./types.js").TransformOptions} options
  * @returns {string}
  */
-export function transform(template, controller, infos, outDir, options) {
-  const cwd = options?.cwd ?? process.cwd()
-  const out = path.resolve(cwd, outDir)
+export function transform({ template, info, infos }) {
+  const controller = relative(path.dirname(info.component), info.controller)
   const controllerIdentifier = genIdentifier("controller")
   const componentIdentifier = genIdentifier("$c")
   const elementIdentifier = genIdentifier("$e")
@@ -59,6 +54,12 @@ export function transform(template, controller, infos, outDir, options) {
       ...Array.from(renderers).map(renderer => genImportSpecifier(renderer))
     )
   )
+
+  if (info.styles) {
+    imports.push(
+      genImportDeclaration(relative(path.dirname(info.component), info.styles))
+    )
+  }
 
   imports.push(
     genImportDeclaration(
@@ -278,13 +279,18 @@ export function transform(template, controller, infos, outDir, options) {
   /**
    *
    * @param {import("./types.js").AstNodeElement} ast
-   * @param {import("./types.js").ComponentInfo} info
+   * @param {import("./types.js").ComponentInfo} componentToImport
    * @returns {import("acorn").CallExpression}
    */
-  function genComponent(ast, info) {
+  function genComponent(ast, componentToImport) {
     const tagName = ast.name
     const varName = tagName.replace(/[-.]/g, "_")
     const identifier = genIdentifier(varName)
+
+    components[tagName] = genImportDeclaration(
+      relative(path.dirname(info.component), componentToImport.component),
+      genImportDefaultSpecifier(identifier)
+    )
 
     const { attrs, props, events } = genAttributes(ast.attributes)
 

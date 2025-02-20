@@ -2,7 +2,8 @@ import process from "node:process"
 import { walk } from "./fs.js"
 import path from "node:path"
 
-const COMPONENT_REGEX = /component\.(html|js|ts|cjs|mjs|cts|mts)/
+const COMPONENT_REGEX =
+  /component\.(html|js|ts|cjs|mjs|cts|mts|css|scss|sass|less|pcss)/
 
 /**
  *
@@ -31,6 +32,8 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
     if (/\.html$/.test(relative)) found[name].template = currentPath
     if (/\.(js|ts|cjs|mjs|cts|mts)$/.test(relative))
       found[name].controller = currentPath
+    if (/\.(css|scss|sass|less|pcss)$/.test(relative))
+      found[name].styles = currentPath
   }
 
   /** @type {Record<string, import("./types.js").ComponentInfo>} */
@@ -42,7 +45,8 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
       component,
       baseName: info.baseName,
       controller: info.controller,
-      template: info.template
+      template: info.template,
+      styles: info.styles
     }
   }
 
