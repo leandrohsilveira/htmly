@@ -1,21 +1,18 @@
 import { assert, component, computed, signal } from "@htmly/core"
 
 /**
- * @typedef Task
- * @property {string} id
- * @property {string} name
- * @property {boolean} done
+ * @typedef {{}} AppInput
  */
 
-/** @type {import("@htmly/core").Signal<Task[]>} */
+/** @type {import("@htmly/core").Signal<import("./todo/types.js").Todo[]>} */
 const allTasks = signal([])
 
 export const name = "app"
 
-export default component(() => {
+function Controller() {
   const tasks = computed(() => allTasks())
 
-  /** @type {import("@htmly/core").Signal<Task | null>} */
+  /** @type {import("@htmly/core").Signal<import("./todo/types.js").Todo | null>} */
   const editTask = signal(null)
 
   return {
@@ -44,15 +41,9 @@ export default component(() => {
     },
     /**
      *
-     * @param {Event} e
+     * @param {Pick<import("./todo/types.js").Todo, 'name'>} payload
      */
-    onsubmit(e) {
-      e.preventDefault()
-      const target = /** @type {HTMLFormElement} */ (e.target)
-      const input = /** @type {HTMLInputElement} */ (
-        target.elements.namedItem("name")
-      )
-      const name = input.value
+    onsubmit({ name }) {
       assert(typeof name === "string", "Name is required")
       try {
         if (editTask() === null)
@@ -77,7 +68,6 @@ export default component(() => {
         )
       } finally {
         editTask.set(null)
-        input.value = ""
       }
     },
     /**
@@ -105,4 +95,6 @@ export default component(() => {
       editTask.set(null)
     }
   }
-})
+}
+
+export default component(Controller)

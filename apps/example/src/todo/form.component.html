@@ -1,0 +1,19 @@
+<form (onsubmit)="(this.onsubmit)" class="todo-form">
+  <label for="name">
+    <legend>Task name</legend>
+    <input
+      type="text"
+      name="name"
+      id="name"
+      [value]="this.value()?.name ?? ''"
+    />
+  </label>
+  <button type="submit">
+    @if (!!this.edit()) {
+      Update
+    } @else {
+      Add
+    }
+  </button>
+  <button type="reset" (onclick)="(this.oncancel)">Cancel</button>
+</form>

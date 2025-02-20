@@ -1,6 +1,6 @@
 import fs from "node:fs"
-import process from "node:process"
 import path from "node:path"
+import process from "node:process"
 import { parseAst, transform, scanComponents } from "@htmly/parser"
 
 /**
@@ -9,19 +9,23 @@ import { parseAst, transform, scanComponents } from "@htmly/parser"
  */
 async function run(scanDir, outDir) {
   const cwd = process.cwd()
+
+  await fs.promises.mkdir(outDir, { recursive: true })
+
   const infos = await scanComponents(scanDir, outDir, { cwd })
 
-  for (const [name, info] of Object.entries(infos)) {
-    const templateContent = fs.readFileSync(info.template)
+  for (const [, info] of Object.entries(infos)) {
+    const templateContent = await fs.promises.readFile(info.template)
     const ast = parseAst(templateContent.toString("utf-8"))
-    const js = transform(
-      ast.html,
-      path.relative(info.component, info.controller),
+    // TODO: detect imported components to avoid compiling unused components
+    const component = transform({
+      template: ast.html,
+      info,
       infos,
       outDir,
-      { cwd }
-    )
-    fs.writeFileSync(info.component, js, "utf-8")
+      cwd
+    })
+    await fs.promises.writeFile(info.component, component, "utf-8")
   }
 }
 

@@ -13,6 +13,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -66,7 +70,6 @@ h1 {
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -92,5 +95,31 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+input {
+  padding: 0.5rem;
+  background-color: #ffffff10;
+  border-radius: 0.25rem;
+  border: 1px solid white;
+  height: 2.5rem;
+}
+
+button {
+  height: 2.5rem;
+  padding: 0.5rem;
+}
+
+table {
+  th,
+  td {
+    padding: 0.5rem;
   }
 }
