@@ -97,7 +97,8 @@ export function parseAst(content) {
       skipWhitespace()
       if (/^[\(\[].*[\)\]]$/.test(name)) {
         const value = parseJavaScript(/[^"]/)
-        eat('"')
+        if (match(')"')) eat(')"')
+        else eat('"')
         return {
           type: "Attribute",
           name: name.replace(/^[\(\[]|[\]\)]$/g, ""),
@@ -252,7 +253,9 @@ export function parseAst(content) {
   function parseExpression() {
     if (match("{{")) {
       eat("{{")
+      skipWhitespace()
       const value = parseJavaScript()
+      skipWhitespace()
       eat("}}")
       return {
         type: "Expression",
@@ -268,13 +271,9 @@ export function parseAst(content) {
   function parseText() {
     skipWhitespace()
     const value = readWhileMatching(
-      () =>
-        !match("<") &&
-        !match("{{") &&
-        !match("@if") &&
-        !match("@for") &&
-        !match("}")
+      sub => !/^(\n+[\n\s]*)?([<}]|[{]{2}|\@(if|for))/.test(sub)
     )
+    skipWhitespace()
     if (value.trim() !== "") {
       return {
         type: "Text",
