@@ -18,7 +18,7 @@ export async function compileAllComponents(scanDir, outDir) {
 
   const infos = await scanComponents(scanDir, outDir, { cwd, prefix })
   for (const [, info] of Object.entries(infos)) {
-    const ast = await compileComponent(info, infos)
+    const ast = await generateComponentAst(info, infos)
     const componentContent = await compiler(ast)
     await fs.promises.writeFile(info.component, componentContent, "utf-8")
   }
@@ -31,7 +31,7 @@ export async function compileAllComponents(scanDir, outDir) {
  * @param {import("./types.js").ComponentInfo} info
  * @param {Record<string, import("./types.js").ComponentInfo>} infos
  */
-export async function compileComponent(info, infos) {
+export async function generateComponentAst(info, infos) {
   const templateContent = await fs.promises.readFile(info.template)
   const templateAst = parseAst(templateContent.toString("utf-8"))
   // TODO: detect imported components to avoid compiling unused components
@@ -40,6 +40,25 @@ export async function compileComponent(info, infos) {
     info,
     infos
   })
+}
+
+/**
+ *
+ * @param {import("./types.js").ComponentInfo} info
+ * @param {Record<string, import("./types.js").ComponentInfo>} infos
+ */
+export async function compileComponent(info, infos) {
+  // TODO: read from options optional param with these defaults
+  const compiler = defaultCompiler
+  const ast = await generateComponentAst(info, infos)
+
+  const code = await compiler(ast)
+  await fs.promises.writeFile(info.component, code, "utf-8")
+
+  return {
+    ast,
+    code
+  }
 }
 
 /**
