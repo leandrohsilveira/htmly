@@ -101,6 +101,7 @@ export interface TransformOptions {
   template: AstNode[]
   info: ComponentInfo
   infos: Record<string, ComponentInfo>
+  resolver(info: ComponentInfo): string
 }
 
 export interface FoundComponentInfo {
@@ -112,6 +113,7 @@ export interface FoundComponentInfo {
 
 export interface ComponentInfo {
   baseName: string
+  context: string
   template: string
   component: string
   controller: string

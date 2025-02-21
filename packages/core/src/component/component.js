@@ -6,12 +6,12 @@ import { constant, isSignal, toReadableSignal } from "../signal/signal.js"
  * @param {import("./types.js").Controller<I, C>} controller
  * @returns {import("./types.js").Component<I, C>}
  */
-export function component(controller) {
+export function controller(controllerFn) {
   /**
    * @param {*} input
    */
   return ({ props, events }) => {
-    const context = controller({
+    const context = controllerFn({
       get props() {
         return proxifyProps(props)
       },

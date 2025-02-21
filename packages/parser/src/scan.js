@@ -1,47 +1,47 @@
+/**
+@import {FoundComponentInfo, ComponentInfo, ScanOptions} from "./types.js"
+ */
 import process from "node:process"
 import { walk } from "./fs.js"
 import path from "node:path"
+import fs from "node:fs"
 
-const COMPONENT_REGEX =
-  /component\.(html|js|ts|cjs|mjs|cts|mts|css|scss|sass|less|pcss)/
+const TEMPLATE_REGEX = /component\.html$/
+const STYLE_REGEX = /component.(css|scss|sass|less|pcss)$/
+const CONTROLLER_REGEX = /component\.(js|ts|cjs|mjs|cts|mts)$/
 
 /**
  *
  * @param {string} scanDir
- * @param {string} outputDir
- * @param {import("./types.js").ScanOptions} [options]
+ * @param {string | ((found: FoundComponentInfo) => string)} outputDir
+ * @param {ScanOptions} [options]
  */
 export async function scanComponents(scanDir, outputDir, options = {}) {
-  const prefix = options.prefix ?? "app"
   const cwd = options.cwd ?? process.cwd()
-  const out = path.resolve(cwd, outputDir)
   const root = path.resolve(cwd, scanDir)
-  /** @type {Record<string, import("./types.js").FoundComponentInfo>} */
+  /** @type {Record<string, FoundComponentInfo>} */
   const found = {}
   for await (const currentPath of await walk(root)) {
-    if (!COMPONENT_REGEX.test(currentPath)) continue
-    const relative = path.relative(root, currentPath)
-    const baseName = relative
-      .replace(/[/\\]/g, "-")
-      .replace(COMPONENT_REGEX, "")
-      .replace(/\.$/, "")
-    const name = `${prefix}-${baseName}`
-    found[name] ??= {
-      baseName
-    }
-    if (/\.html$/.test(relative)) found[name].template = currentPath
-    if (/\.(js|ts|cjs|mjs|cts|mts)$/.test(relative))
-      found[name].controller = currentPath
-    if (/\.(css|scss|sass|less|pcss)$/.test(relative))
-      found[name].styles = currentPath
+    if (!isComponentFile(currentPath)) continue
+    const { name, baseName } = componentName(root, currentPath, options)
+
+    found[name] ??= { baseName }
+    if (TEMPLATE_REGEX.test(currentPath)) found[name].template = currentPath
+    if (CONTROLLER_REGEX.test(currentPath)) found[name].controller = currentPath
+    if (STYLE_REGEX.test(currentPath)) found[name].styles = currentPath
   }
 
-  /** @type {Record<string, import("./types.js").ComponentInfo>} */
+  /** @type {Record<string, ComponentInfo>} */
   const infos = {}
   for (const [name, info] of Object.entries(found)) {
     if (!info.template || !info.controller) continue
-    const component = path.resolve(out, `${name}.js`)
+    const context =
+      typeof outputDir === "string"
+        ? path.resolve(cwd, outputDir)
+        : outputDir(info)
+    const component = path.resolve(context, `${name}.js`)
     infos[name] = {
+      context,
       component,
       baseName: info.baseName,
       controller: info.controller,
@@ -51,4 +51,77 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
   }
 
   return infos
+}
+
+/**
+ *
+ * @param {string} scanDir
+ * @param {string} file
+ * @param {ScanOptions} [options]
+ * @returns
+ */
+function componentName(scanDir, file, options = {}) {
+  const prefix = options.prefix ?? "app"
+  const cwd = options.cwd ?? process.cwd()
+  const root = path.resolve(cwd, scanDir)
+  const relative = path.relative(root, file)
+  const baseName = relative
+    .replace(/[/\\]/g, "-")
+    .replace(STYLE_REGEX, "")
+    .replace(TEMPLATE_REGEX, "")
+    .replace(CONTROLLER_REGEX, "")
+    .replace(/[\.\-\_]$/, "")
+  const name = `${prefix}-${baseName}`
+  return { name, baseName }
+}
+
+/**
+ *
+ * @param {string} scanDir
+ * @param {string} file
+ * @param {ScanOptions} [options]
+ * @return {Promise<{ name: string, info: ComponentInfo } | null>}
+ */
+export async function detectComponent(scanDir, file, options = {}) {
+  if (isComponentFile(file)) {
+    const context = path.dirname(file)
+    const { name, baseName } = componentName(scanDir, file, options)
+
+    /** @type {FoundComponentInfo} */
+    const found = { baseName }
+
+    for await (const currentPath of await walk(context, false)) {
+      if (TEMPLATE_REGEX.test(currentPath)) found.template = currentPath
+      if (CONTROLLER_REGEX.test(currentPath)) found.controller = currentPath
+      if (STYLE_REGEX.test(currentPath)) found.styles = currentPath
+    }
+
+    if (found.template && found.controller) {
+      const component = path.resolve(context, `${name}.js`)
+      return {
+        name,
+        info: {
+          baseName,
+          context,
+          component,
+          controller: found.controller,
+          template: found.template,
+          styles: found.styles
+        }
+      }
+    }
+  }
+  return null
+}
+
+/**
+ * @param {string} file
+ * @returns {boolean}
+ */
+export function isComponentFile(file) {
+  return (
+    TEMPLATE_REGEX.test(file) ||
+    STYLE_REGEX.test(file) ||
+    CONTROLLER_REGEX.test(file)
+  )
 }

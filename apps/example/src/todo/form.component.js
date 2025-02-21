@@ -1,19 +1,23 @@
-import { component, computed } from "@htmly/core"
+/** 
+@import { ControllerInput } from "@htmly/core"
+@import { Todo } from "./types.js"
+*/
+import { controller, computed } from "@htmly/core"
 
 /**
  * @typedef TodoFormProps
- * @property {import("./types.js").Todo | null} [value]
+ * @property {Todo | null} [value]
  */
 
 /**
  * @typedef TodoFormEvents
- * @property {Pick<import("./types.js").Todo, 'name'>} onsubmit
+ * @property {Pick<Todo, 'name'>} onsubmit
  * @property {void} oncancel
  */
 
 /**
  *
- * @param {import("@htmly/core").ControllerInput<{ props: TodoFormProps, events: TodoFormEvents }>} input
+ * @param {ControllerInput<{ props: TodoFormProps, events: TodoFormEvents }>} input
  */
 export function TodoFormController({
   props: { value },
@@ -42,4 +46,4 @@ export function TodoFormController({
   }
 }
 
-export default component(TodoFormController)
+export default controller(TodoFormController)

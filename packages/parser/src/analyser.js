@@ -1,4 +1,4 @@
-import { assert, component } from "@htmly/core"
+import { assert, controller } from "@htmly/core"
 import { parse } from "acorn"
 
 /**
@@ -115,7 +115,7 @@ function assertControllerCallExpression(declaration) {
   assert(
     declaration.type === "CallExpression" &&
       declaration.callee.type === "Identifier" &&
-      declaration.callee.name === component.name,
+      declaration.callee.name === controller.name,
     "[Analyze] controller default export must be a call expression to component function"
   )
 }

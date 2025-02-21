@@ -1,4 +1,4 @@
-import { assert, component, computed, signal } from "@htmly/core"
+import { assert, controller, computed, signal } from "@htmly/core"
 
 /**
  * @typedef {{}} AppInput
@@ -9,7 +9,7 @@ const allTasks = signal([])
 
 export const name = "app"
 
-function Controller() {
+function MainController() {
   const tasks = computed(() => allTasks())
 
   /** @type {import("@htmly/core").Signal<import("./todo/types.js").Todo | null>} */
@@ -97,4 +97,4 @@ function Controller() {
   }
 }
 
-export default component(Controller)
+export default controller(MainController)

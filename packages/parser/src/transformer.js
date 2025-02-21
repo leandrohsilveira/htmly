@@ -24,8 +24,8 @@ import { relative } from "./util.js"
  * @param {import("./types.js").TransformOptions} options
  * @returns {import("acorn").Program}
  */
-export function transform({ template, info, infos }) {
-  const controller = relative(path.dirname(info.component), info.controller)
+export function transform({ template, info, infos, resolver }) {
+  const controller = relative(info.context, info.controller)
   const controllerIdentifier = genIdentifier("controller")
   const componentIdentifier = genIdentifier("$c")
   const elementIdentifier = genIdentifier("$e")
@@ -55,9 +55,7 @@ export function transform({ template, info, infos }) {
   )
 
   if (info.styles) {
-    imports.push(
-      genImportDeclaration(relative(path.dirname(info.component), info.styles))
-    )
+    imports.push(genImportDeclaration(relative(info.context, info.styles)))
   }
 
   imports.push(
@@ -287,7 +285,7 @@ export function transform({ template, info, infos }) {
     const identifier = genIdentifier(varName)
 
     components[tagName] = genImportDeclaration(
-      relative(path.dirname(info.component), componentToImport.component),
+      relative(info.context, resolver(componentToImport)),
       genImportDefaultSpecifier(identifier)
     )
 

@@ -1,5 +1,5 @@
 import { render } from "@htmly/core/dom"
-import App from "./.htmly/app-main.js"
+import App from "./main.component.html"
 import "./style.css"
 
 render("[app]", App, {})

@@ -30,15 +30,18 @@ export async function compileAllComponents(scanDir, outDir) {
  *
  * @param {import("./types.js").ComponentInfo} info
  * @param {Record<string, import("./types.js").ComponentInfo>} infos
+ * @param {(info: import("./types.js").ComponentInfo) => string} [resolver]
  */
-export async function generateComponentAst(info, infos) {
+export async function generateComponentAst(info, infos, resolver) {
+  resolver ??= info => info.component
   const templateContent = await fs.promises.readFile(info.template)
   const templateAst = parseAst(templateContent.toString("utf-8"))
   // TODO: detect imported components to avoid compiling unused components
   return transform({
     template: templateAst.html,
     info,
-    infos
+    infos,
+    resolver
   })
 }
 

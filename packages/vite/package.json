@@ -9,7 +9,8 @@
   "description": "",
   "dependencies": {
     "@htmly/core": "*",
-    "@htmly/parser": "*"
+    "@htmly/parser": "*",
+    "escodegen": "^2.1.0"
   },
   "exports": {
     ".": {
