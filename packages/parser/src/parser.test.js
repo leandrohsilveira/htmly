@@ -106,7 +106,7 @@ describe("parseAst function", () => {
   })
 
   it("should parse element events", () => {
-    const result = parseAst('<div (foo)="this.bar"></div>')
+    const result = parseAst('<div (foo)="(this.bar)"></div>')
 
     expect(result).toEqual([
       {

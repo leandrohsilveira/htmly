@@ -14,6 +14,7 @@
 
 import { parseExpressionAt } from "acorn"
 import { genLiteral } from "./ast.js"
+import { assert } from "@htmly/core"
 
 /**
  *
@@ -335,11 +336,8 @@ export function parseAst(content) {
    * @param {string} str
    */
   function eat(str) {
-    if (match(str)) {
-      i += str.length
-    } else {
-      throw new Error(`Parser error: expecting "${str}"`)
-    }
+    assert(match(str), `Parser error: expecting "${str}"`)
+    i += str.length
   }
 
   /**
