@@ -16,6 +16,7 @@
   AstNodeIf,
   AstNodeFor,
   ComponentInfo,
+  AstNodeElseIf,
 } from "./types.js"
 */
 import { assert } from "@htmly/core"
@@ -147,6 +148,7 @@ export function transform({ template, info, infos, resolver }) {
       case "Text":
         return genText(ast)
       case "If":
+      case "ElseIf":
         return genIf(ast)
       case "For":
         return genFor(ast)
@@ -213,14 +215,20 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {AstNodeIf} node
+   * @param {AstNodeIf | AstNodeElseIf} node
    * @returns {CallExpression | undefined}
    */
   function genIf(node) {
+    assert(
+      node.type === "If",
+      "ElseIf nodes are only allowed in elifs of If nodes"
+    )
+    const otherwise = node.otherwise ?? []
+    const elifs = node.elifs ?? []
     if (
       node.then.length === 0 &&
-      !node.elifs.some(elif => elif.then.length > 0) &&
-      node.otherwise.length === 0
+      !elifs.some(elif => elif.then.length > 0) &&
+      otherwise.length === 0
     )
       return undefined
     renderers.add(ifIdentifier)
@@ -231,7 +239,7 @@ export function transform({ template, info, infos, resolver }) {
       ...(thenFragment
         ? [genArrayExpression(genArrowFunction({}, node.test), thenFragment)]
         : []),
-      ...node.elifs
+      ...elifs
         .map(iff => {
           const elifThenFragment = genFragment(...iff.then)
           if (!elifThenFragment) return undefined
@@ -243,7 +251,7 @@ export function transform({ template, info, infos, resolver }) {
         .filter(expr => expr !== undefined)
     )
 
-    const otherwiseFragment = genFragment(...node.otherwise)
+    const otherwiseFragment = genFragment(...otherwise)
 
     return genCallExpression(
       ifIdentifier,
@@ -275,7 +283,7 @@ export function transform({ template, info, infos, resolver }) {
     /** @type {Property[]} */
     const optional = []
 
-    const emptyFragment = genFragment(...ast.empty)
+    const emptyFragment = genFragment(...(ast.empty ?? []))
 
     if (emptyFragment) {
       optional.push(genProperty(genIdentifier("empty"), emptyFragment))

@@ -6,7 +6,8 @@
   AstNodeExpression,
   AstNodeAttribute,
   AstNodeIf,
-  AstNodeFor
+  AstNodeFor,
+  AstNodeElseIf
 } from "./types.js"
 @import { Expression } from "acorn"
 */
@@ -159,7 +160,7 @@ export function parseAst(content) {
       eat("}")
       /** @type {AstNode[]} */
       let otherwise = []
-      /** @type {AstNodeIf[]} */
+      /** @type {AstNodeElseIf[]} */
       let elifs = []
       skipWhitespace()
       while (match("@else")) {
@@ -177,11 +178,9 @@ export function parseAst(content) {
           eat("}")
           skipWhitespace()
           elifs.push({
-            type: "If",
+            type: "ElseIf",
             test,
-            then,
-            otherwise: [],
-            elifs: []
+            then
           })
         } else {
           eat("{")
@@ -191,13 +190,18 @@ export function parseAst(content) {
           skipWhitespace()
         }
       }
-      return {
+
+      /** @type {AstNodeIf} */
+      const result = {
         type: "If",
         test,
-        then,
-        elifs,
-        otherwise
+        then
       }
+
+      if (elifs.length) result.elifs = elifs
+      if (otherwise.length) result.otherwise = otherwise
+
+      return result
     }
   }
 
@@ -243,14 +247,16 @@ export function parseAst(content) {
         skipWhitespace()
         eat("}")
       }
-      return {
+      /** @type {AstNodeFor} */
+      const result = {
         type: "For",
         item,
         items,
         track,
-        children,
-        empty
+        children
       }
+      if (empty.length) result.empty = empty
+      return result
     }
   }
 

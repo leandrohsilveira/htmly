@@ -6,6 +6,7 @@ export type AstNodes =
   | "Expression"
   | "Text"
   | "If"
+  | "ElseIf"
   | "For"
 
 export interface Ast {
@@ -21,6 +22,7 @@ export type AstNode =
   | AstNodeExpression
   | AstNodeText
   | AstNodeIf
+  | AstNodeElseIf
   | AstNodeFor
 
 export interface AstNodeElement extends AbstractAstNode {
@@ -67,8 +69,14 @@ export interface AstNodeIf extends AbstractAstNode {
   type: "If"
   test: Expression
   then: AstNode[]
-  elifs: AstNodeIf[]
-  otherwise: AstNode[]
+  elifs?: AstNodeElseIf[]
+  otherwise?: AstNode[]
+}
+
+export interface AstNodeElseIf extends AbstractAstNode {
+  type: "ElseIf"
+  test: Expression
+  then: AstNode[]
 }
 
 export interface AstNodeFor extends AbstractAstNode {
@@ -77,7 +85,7 @@ export interface AstNodeFor extends AbstractAstNode {
   items: Expression
   track: Expression
   children: AstNode[]
-  empty: AstNode[]
+  empty?: AstNode[]
 }
 
 export interface AnalyzeResult {
