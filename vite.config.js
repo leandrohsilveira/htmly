@@ -1,5 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vite"
 
 export default defineConfig({
-  test: {},
-});
+  test: {
+    coverage: {
+      enabled: true,
+      provider: "istanbul",
+      reporter: ["text", "json", "html"]
+    }
+  }
+})
