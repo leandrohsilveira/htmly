@@ -1,9 +1,10 @@
-import fs from "node:fs"
-import { parseAst } from "./parser.js"
-import { transform } from "./transformer.js"
-import { scanComponents } from "./scan.js"
-import process from "node:process"
 import { generate } from "escodegen"
+import fs from "node:fs"
+import path from "node:path"
+import process from "node:process"
+import { parseAst } from "./parser.js"
+import { scanComponents } from "./scan.js"
+import { transform } from "./transformer.js"
 
 /**
  *
@@ -20,6 +21,7 @@ export async function compileAllComponents(scanDir, outDir) {
   for (const [, info] of Object.entries(infos)) {
     const ast = await generateComponentAst(info, infos)
     const componentContent = await compiler(ast)
+    await fs.promises.mkdir(path.dirname(info.component), { recursive: true })
     await fs.promises.writeFile(info.component, componentContent, "utf-8")
   }
 

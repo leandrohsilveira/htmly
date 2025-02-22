@@ -1,5 +1,4 @@
 import { assert } from "@htmly/core"
-import path from "node:path"
 import {
   genArrayExpression,
   genArrowFunction,
@@ -11,6 +10,7 @@ import {
   genImportDefaultSpecifier,
   genImportSpecifier,
   genLiteral,
+  genMemberExpression,
   genObjectExpression,
   genProperty,
   genReturn,
@@ -33,6 +33,12 @@ export function transform({ template, info, infos, resolver }) {
   const ifIdentifier = genIdentifier("$if")
   const forIdentifier = genIdentifier("$for")
   const fragmentIdentifier = genIdentifier("$f")
+  const slotsIdentifier = genIdentifier("$$slots")
+
+  /**
+   * @type {Set<import("acorn").Pattern>}
+   */
+  const componentFnParams = new Set()
 
   const renderers = new Set([componentIdentifier])
 
@@ -93,7 +99,12 @@ export function transform({ template, info, infos, resolver }) {
         genCallExpression(
           componentIdentifier,
           controllerIdentifier,
-          genFunctionExpression({}, undefined, [], genReturn(toReturn))
+          genFunctionExpression(
+            {},
+            undefined,
+            Array.from(componentFnParams),
+            genReturn(toReturn)
+          )
         )
       )
     ]
@@ -106,6 +117,7 @@ export function transform({ template, info, infos, resolver }) {
   function genNode(ast) {
     switch (ast.type) {
       case "Element":
+        if (ast.name === "slot") return genSlot(ast)
         if (infos[ast.name]) return genComponent(ast, infos[ast.name])
         return genElement(ast)
       case "Expression":
@@ -284,6 +296,10 @@ export function transform({ template, info, infos, resolver }) {
     const varName = tagName.replace(/[-.]/g, "_")
     const identifier = genIdentifier(varName)
 
+    const defaultSlots = ast.children.filter(
+      el => el.type === "Element" && el.name !== "template"
+    )
+
     components[tagName] = genImportDeclaration(
       relative(info.context, resolver(componentToImport)),
       genImportDefaultSpecifier(identifier)
@@ -308,8 +324,46 @@ export function transform({ template, info, infos, resolver }) {
         genProperty(genIdentifier("events"), genObjectExpression(...events))
       )
     }
+    if (defaultSlots.length > 0) {
+      const defaultElement = genFragment(...defaultSlots)
+      if (defaultElement !== undefined) {
+        objectProps.push(
+          genProperty(
+            genIdentifier("slots"),
+            genObjectExpression(
+              genProperty(
+                genLiteral("default"),
+                genArrowFunction({}, defaultElement)
+              )
+            )
+          )
+        )
+      }
+    }
 
     return genCallExpression(identifier, genObjectExpression(...objectProps))
+  }
+
+  /**
+   * @param {import("./types.js").AstNodeElement} ast
+   * @returns {import("acorn").CallExpression}
+   */
+  function genSlot(ast) {
+    componentFnParams.add(slotsIdentifier)
+
+    const { props } = genAttributes(ast.attributes)
+
+    const nameAttr = ast.attributes.find(attr => attr.name === "name")
+
+    const name =
+      nameAttr?.value?.type === "Text" ? nameAttr.value.value : "default"
+
+    return genCallExpression(
+      genMemberExpression(slotsIdentifier, genLiteral(name ?? "default"), {
+        computed: true
+      }),
+      genObjectExpression(...props)
+    )
   }
 
   /**

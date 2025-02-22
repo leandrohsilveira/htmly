@@ -4,7 +4,8 @@ import type {
   InputAttrs,
   InputDefinition,
   InputEvents,
-  InputProps
+  InputProps,
+  InputSlots
 } from "../component/types.js"
 import { ReadableSignal, Signal } from "../signal/types.js"
 
@@ -48,13 +49,17 @@ export type ComponentRef<
   P extends ComponentInputDefinition,
   El = unknown,
   Ref = El
-> = (props: ComponentInput<P>) => ElementRef<El, Ref>
+> = (props: ComponentInput<P, El, Ref>) => ElementRef<El, Ref>
 
 export type ComponentElementRef<
   Ctx extends Record<string, unknown>,
+  I extends ComponentInputDefinition,
   El = unknown,
   Ref = El
-> = (this: Ctx) => ElementRef<El, Ref> | null
+> = (
+  this: Ctx,
+  slots: InputSlots<I["slots"], El, Ref>
+) => ElementRef<El, Ref> | null
 
 export type IfProps<El = unknown, Ref = El> = {
   ifs: [() => boolean, ElementRef<El, Ref>][]

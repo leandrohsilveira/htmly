@@ -1,8 +1,10 @@
+import { ElementRef } from "../renderer/types.js"
 import { Constant, ReadableSignal } from "../signal/index.js"
 
 export type ComponentInputDefinition = {
   props?: unknown
   events?: unknown
+  slots?: unknown
 }
 
 export type InputDefinition = ComponentInputDefinition & {
@@ -21,15 +23,25 @@ export type InputEvents<T> = {
   [K in keyof T]: (event: T[K]) => void
 }
 
+export type InputSlots<T, El = unknown, Ref = El> = {
+  [K in keyof T]: (context: T[K]) => ElementRef<El, Ref>
+}
+
 export type Prop<T> = T extends Function ? T : T | (() => T)
 
-export type ComponentInput<T extends ComponentInputDefinition> =
-  (T["props"] extends Record<string, unknown>
-    ? { props: InputProps<T["props"]> } & { attrs?: InputAttrs<T["props"]> }
+export type ComponentInput<
+  T extends ComponentInputDefinition,
+  El = unknown,
+  Ref = El
+> = (T["props"] extends Record<string, unknown>
+  ? { props: InputProps<T["props"]> } & { attrs?: InputAttrs<T["props"]> }
+  : {}) &
+  (T["events"] extends Record<string, unknown>
+    ? { events: InputEvents<T["events"]> }
     : {}) &
-    (T["events"] extends Record<string, unknown>
-      ? { events: InputEvents<T["events"]> }
-      : {})
+  (T["slots"] extends Record<string, unknown>
+    ? { slots: InputSlots<T["slots"], El, Ref> }
+    : {})
 
 export type PropsRef<T extends ComponentInputDefinition> = {
   [K in keyof T["props"]]-?:
@@ -43,9 +55,14 @@ export type EventsRef<T extends ComponentInputDefinition> = {
     : (e: T["events"][K]) => void
 }
 
+export type SlotsRef<T extends ComponentInputDefinition> = {
+  [K in keyof T["slots"]]-?: boolean
+}
+
 export type ControllerInput<P extends ComponentInputDefinition> = {
   props: PropsRef<P>
   events: EventsRef<P>
+  slots: SlotsRef<P>
 }
 
 export type Controller<

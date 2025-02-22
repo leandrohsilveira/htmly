@@ -1,3 +1,22 @@
+/**
+@import {
+ ElementRef,
+ Unsubscribe,
+ Renderer,
+ ComponentRef,
+ ComponentElementRef,
+ ElementInput,
+ ForControl,
+ ForProps,
+ IfProps,
+ ForElementRef
+} from "./types.js"
+@import {
+ Component,
+ ComponentInput,
+ ComponentInputDefinition
+} from "../component/types.js"
+*/
 import {
   computed,
   constant,
@@ -16,8 +35,8 @@ export function $e(element) {
   return el
 
   /**
-   * @param {import("./types.ts").ElementInput<*>} [input]
-   * @returns {import("./types.ts").ElementRef}
+   * @param {ElementInput<*>} [input]
+   * @returns {ElementRef}
    */
   function el({ props, attrs, events, child } = {}) {
     return elementRef(observe => {
@@ -91,7 +110,7 @@ export function $e(element) {
 /**
  *
  * @param {(() => string | number | boolean) | string | number | boolean } value
- * @returns {import("./types.ts").ElementRef}
+ * @returns {ElementRef}
  */
 export function $t(value) {
   return elementRef(observe => {
@@ -123,14 +142,14 @@ export function $t(value) {
 
 /**
  *
- * @param {import("./types.ts").IfProps} props
+ * @param {IfProps} props
  */
 export function $if({ ifs, otherwise }) {
   return elementRef(observe => {
     /** @type {number | undefined} */
     let index
 
-    /** @type {import("./types.ts").ElementRef | undefined} */
+    /** @type {ElementRef | undefined} */
     let mounted
 
     return {
@@ -163,17 +182,17 @@ export function $if({ ifs, otherwise }) {
 
 /**
  * @template T
- * @param {import("./types.ts").ForProps<T>} props
- * @param {import("./types.ts").ForElementRef<T>} forRef
+ * @param {ForProps<T>} props
+ * @param {ForElementRef<T>} forRef
  */
 export function $for({ items, trackBy, empty }, forRef) {
   return elementRef(observe => {
     let mounted = false
 
-    /** @type {import("./types.ts").ElementRef | undefined} */
+    /** @type {ElementRef | undefined} */
     let emptyMounted
 
-    /** @type {import("./types.ts").ForControl<T>} */
+    /** @type {ForControl<T>} */
     const control = {
       tracks: [],
       map: {}
@@ -215,7 +234,7 @@ export function $for({ items, trackBy, empty }, forRef) {
               emptyMounted = undefined
             }
 
-            /** @type {import("./types.ts").ForControl<T>} */
+            /** @type {ForControl<T>} */
             const newControl = {
               tracks: items().map(item => trackBy(() => item)),
               map: {}
@@ -262,14 +281,6 @@ export function $for({ items, trackBy, empty }, forRef) {
           })
         )
         mounted = true
-
-        /**
-         *
-         * @param {number} itemIndex
-         */
-        function itemAt(itemIndex) {
-          return computed(() => items()[itemIndex])
-        }
       },
       unmount(renderer, target) {
         for (const mapped of Object.values(control.map)) {
@@ -284,16 +295,16 @@ export function $for({ items, trackBy, empty }, forRef) {
 }
 
 /**
- * @template {import("../component/types.js").ComponentInputDefinition} I
+ * @template {ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
- * @param {import("../component/types.js").Component<I, C>} controller
- * @param {import("./types.ts").ComponentElementRef<C>} componentRefs
- * @returns {import("./types.ts").ComponentRef<I>}
+ * @param {Component<I, C>} controller
+ * @param {ComponentElementRef<C, I>} componentRefs
+ * @returns {ComponentRef<I>}
  */
 export function $c(controller, componentRefs) {
   return props =>
     elementRef(() => {
-      /** @type {import("./types.ts").ElementRef | undefined | null} */
+      /** @type {ElementRef | undefined | null} */
       let child = undefined
 
       return {
@@ -307,7 +318,7 @@ export function $c(controller, componentRefs) {
         },
         mount(renderer, target, after) {
           const ctx = controller(props)
-          child = componentRefs.call(ctx)
+          child = componentRefs.call(ctx, /** @type {*} */ (props).slots)
           child?.mount(renderer, target, after)
         },
         unmount(renderer, target) {
@@ -320,8 +331,8 @@ export function $c(controller, componentRefs) {
 
 /**
  *
- * @param  {...import("./types.ts").ElementRef} children
- * @returns {import("./types.ts").ElementRef}
+ * @param  {...ElementRef} children
+ * @returns {ElementRef}
  */
 export function $f(...children) {
   return elementRef(() => {
@@ -352,11 +363,11 @@ export function $f(...children) {
 
 /**
  * @template {Record<string, unknown>} P
- * @param {import("./types.js").Renderer} renderer
+ * @param {Renderer} renderer
  * @param {unknown} target
- * @param {import("./types.js").ComponentRef<P>} component
- * @param {import("../component/types.js").ComponentInput<P>} props
- * @returns {import("./types.js").Unsubscribe}
+ * @param {ComponentRef<P>} component
+ * @param {ComponentInput<P>} props
+ * @returns {Unsubscribe}
  */
 export function render(renderer, target, component, props) {
   const ref = component(props)
@@ -365,11 +376,11 @@ export function render(renderer, target, component, props) {
 }
 
 /**
- * @param {(observe: (u: import("./types.js").Unsubscribe | undefined) => void) => import("./types.ts").ElementRef} supplier
- * @returns {import("./types.ts").ElementRef}
+ * @param {(observe: (u: Unsubscribe | undefined) => void) => ElementRef} supplier
+ * @returns {ElementRef}
  */
 function elementRef(supplier) {
-  /** @type {import("./types.js").Unsubscribe[]} */
+  /** @type {Unsubscribe[]} */
   const observers = []
 
   const ref = supplier(observe)
@@ -392,7 +403,7 @@ function elementRef(supplier) {
 
   /**
    *
-   * @param {import("./types.js").Unsubscribe | undefined} unsubscriber
+   * @param {Unsubscribe | undefined} unsubscriber
    */
   function observe(unsubscriber) {
     if (unsubscriber) observers.push(unsubscriber)
@@ -433,7 +444,7 @@ function watchIfNecessary(value, fn) {
 
 /**
  * @template El
- * @param {Pick<import("./types.ts").ElementRef<El>, 'elements'> | undefined} ref
+ * @param {Pick<ElementRef<El>, 'elements'> | undefined} ref
  * @return {El | undefined}
  */
 function lastElement(ref) {

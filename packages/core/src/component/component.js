@@ -1,22 +1,32 @@
+/**
+@import {
+  Component,
+  ComponentInputDefinition,
+  Controller,
+} from "./types.js"
+ */
 import { constant, isSignal, toReadableSignal } from "../signal/signal.js"
 
 /**
- * @template {import("./types.js").ComponentInputDefinition} I
+ * @template {ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
- * @param {import("./types.js").Controller<I, C>} controller
- * @returns {import("./types.js").Component<I, C>}
+ * @param {Controller<I, C>} controllerFn
+ * @returns {Component<I, C>}
  */
 export function controller(controllerFn) {
   /**
    * @param {*} input
    */
-  return ({ props, events }) => {
+  return ({ props, events, slots = {} }) => {
     const context = controllerFn({
       get props() {
         return proxifyProps(props)
       },
       get events() {
         return proxifyEvents(events)
+      },
+      get slots() {
+        return handleSlots(slots)
       }
     })
 
@@ -58,4 +68,19 @@ function proxifyEvents(input) {
       return () => {}
     }
   })
+}
+
+/**
+ *
+ * @param {*} slots
+ * @returns {*}
+ */
+function handleSlots(slots) {
+  if (!slots) return {}
+  return Object.fromEntries(
+    Object.entries(slots).map(([key, value]) => [
+      key,
+      value !== undefined && value !== null
+    ])
+  )
 }

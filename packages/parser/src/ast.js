@@ -285,6 +285,28 @@ export function genVariableDeclaration(kind, ...declarations) {
 }
 
 /**
+ * @param {import("acorn").MemberExpression['object']} object
+ * @param {import("acorn").MemberExpression['property']} property
+ * @param {{ computed?: boolean, optional?: boolean}} [options]
+ * @returns {import("acorn").MemberExpression}
+ */
+export function genMemberExpression(
+  object,
+  property,
+  { computed = false, optional = false } = {}
+) {
+  return {
+    type: "MemberExpression",
+    start: 0,
+    end: 0,
+    computed,
+    optional,
+    object,
+    property
+  }
+}
+
+/**
  *
  * @param {string} name
  * @returns {import("acorn").Identifier}

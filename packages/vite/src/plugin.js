@@ -44,7 +44,7 @@ export function htmlyPlugin() {
       if (
         resolved &&
         !resolved.external &&
-        /\.component.html$/.test(id) &&
+        /component.html$/.test(id) &&
         importer
       ) {
         ids.add(resolved.id)
