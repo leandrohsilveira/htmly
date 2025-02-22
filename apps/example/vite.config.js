@@ -1,6 +1,6 @@
 import { defineConfig } from "vite"
-import { htmlyPlugin } from "@htmly/vite"
+import htmly from "@htmly/vite"
 
 export default defineConfig({
-  plugins: [htmlyPlugin()]
+  plugins: [htmly()]
 })

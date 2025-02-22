@@ -1,3 +1,7 @@
+/**
+@import { ComponentInfo } from "@htmly/parser"
+@import { Program } from "acorn"
+*/
 import { generate } from "escodegen"
 import fs from "node:fs"
 import path from "node:path"
@@ -30,17 +34,16 @@ export async function compileAllComponents(scanDir, outDir) {
 
 /**
  *
- * @param {import("./types.js").ComponentInfo} info
- * @param {Record<string, import("./types.js").ComponentInfo>} infos
- * @param {(info: import("./types.js").ComponentInfo) => string} [resolver]
+ * @param {ComponentInfo} info
+ * @param {Record<string, ComponentInfo>} infos
+ * @param {(info: ComponentInfo) => string} [resolver]
  */
 export async function generateComponentAst(info, infos, resolver) {
   resolver ??= info => info.component
   const templateContent = await fs.promises.readFile(info.template)
   const templateAst = parseAst(templateContent.toString("utf-8"))
-  // TODO: detect imported components to avoid compiling unused components
   return transform({
-    template: templateAst.html,
+    template: templateAst,
     info,
     infos,
     resolver
@@ -49,8 +52,8 @@ export async function generateComponentAst(info, infos, resolver) {
 
 /**
  *
- * @param {import("./types.js").ComponentInfo} info
- * @param {Record<string, import("./types.js").ComponentInfo>} infos
+ * @param {ComponentInfo} info
+ * @param {Record<string, ComponentInfo>} infos
  */
 export async function compileComponent(info, infos) {
   // TODO: read from options optional param with these defaults
@@ -67,7 +70,7 @@ export async function compileComponent(info, infos) {
 }
 
 /**
- * @param {import("acorn").Program} ast
+ * @param {Program} ast
  */
 async function defaultCompiler(ast) {
   return generate(ast)

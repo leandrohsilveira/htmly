@@ -16,7 +16,7 @@ import path from "node:path"
 /**
  * @returns {Plugin}
  */
-export function htmlyPlugin() {
+export function vitePlugin() {
   const scanDir = "./src"
   const ids = new Set()
 
@@ -67,10 +67,10 @@ export function htmlyPlugin() {
           `Component not found for file id "${id}"`
         )
 
-        const { html } = parseAst(src)
+        const template = parseAst(src)
 
         const ast = transform({
-          template: html,
+          template,
           info: infos[componentName],
           infos,
           resolver: info => info.template

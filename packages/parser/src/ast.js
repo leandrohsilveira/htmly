@@ -1,8 +1,36 @@
 /**
+@import {
+  Expression,
+  Statement,
+  Pattern,
+  BlockStatement,
+  ArrowFunctionExpression,
+  FunctionDeclaration,
+  FunctionExpression,
+  Identifier,
+  Literal,
+  ReturnStatement,
+  ImportDeclaration,
+  ImportSpecifier,
+  ImportDefaultSpecifier,
+  ExportDefaultDeclaration,
+  Property,
+  AssignmentProperty,
+  ObjectExpression,
+  ObjectPattern,
+  ArrayExpression,
+  CallExpression,
+  VariableDeclarator,
+  VariableDeclaration,
+  MemberExpression
+} from "acorn"
+*/
+
+/**
  * @param {{ async?: boolean, generator?: boolean, expression?: boolean }} options
- * @param {import("acorn").ArrowFunctionExpression['body']} body
- * @param {...import("acorn").Pattern} params
- * @returns {import("acorn").ArrowFunctionExpression}
+ * @param {ArrowFunctionExpression['body']} body
+ * @param {...Pattern} params
+ * @returns {ArrowFunctionExpression}
  */
 export function genArrowFunction(
   { async, generator, expression },
@@ -23,10 +51,10 @@ export function genArrowFunction(
 
 /**
  * @param {{ async?: boolean, generator?: boolean, expression?: boolean }} options
- * @param {import("acorn").FunctionDeclaration['id']} id
- * @param {import("acorn").FunctionDeclaration['params']} params
- * @param {...import("acorn").BlockStatement['body'][number]} body
- * @returns {import("acorn").FunctionDeclaration}
+ * @param {FunctionDeclaration['id']} id
+ * @param {FunctionDeclaration['params']} params
+ * @param {...BlockStatement['body'][number]} body
+ * @returns {FunctionDeclaration}
  */
 export function genFunction(
   { async, generator, expression },
@@ -54,10 +82,10 @@ export function genFunction(
 
 /**
  * @param {{ async?: boolean, generator?: boolean, expression?: boolean }} options
- * @param {import("acorn").FunctionExpression['params']} params
- * @param {import("acorn").FunctionExpression['id']} id
- * @param {...import("acorn").BlockStatement['body'][number]} body
- * @returns {import("acorn").FunctionExpression}
+ * @param {FunctionExpression['params']} params
+ * @param {FunctionExpression['id']} id
+ * @param {...BlockStatement['body'][number]} body
+ * @returns {FunctionExpression}
  */
 export function genFunctionExpression(
   { async, generator, expression },
@@ -84,8 +112,8 @@ export function genFunctionExpression(
 }
 
 /**
- * @param {import("acorn").ReturnStatement['argument']} [argument]
- * @returns {import("acorn").ReturnStatement}
+ * @param {ReturnStatement['argument']} [argument]
+ * @returns {ReturnStatement}
  */
 export function genReturn(argument) {
   return {
@@ -99,8 +127,8 @@ export function genReturn(argument) {
 /**
  *
  * @param {string} source
- * @param {import("acorn").ImportDeclaration['specifiers']} specifiers
- * @returns {import("acorn").ImportDeclaration}
+ * @param {ImportDeclaration['specifiers']} specifiers
+ * @returns {ImportDeclaration}
  */
 export function genImportDeclaration(source, ...specifiers) {
   return {
@@ -115,9 +143,9 @@ export function genImportDeclaration(source, ...specifiers) {
 
 /**
  *
- * @param {import("acorn").Identifier} local
- * @param {import("acorn").Identifier | import("acorn").Literal} [imported]
- * @returns {import("acorn").ImportSpecifier}
+ * @param {Identifier} local
+ * @param {Identifier | Literal} [imported]
+ * @returns {ImportSpecifier}
  */
 export function genImportSpecifier(local, imported = local) {
   return {
@@ -130,8 +158,8 @@ export function genImportSpecifier(local, imported = local) {
 }
 
 /**
- * @param {import("acorn").Identifier} local
- * @returns {import("acorn").ImportDefaultSpecifier}
+ * @param {Identifier} local
+ * @returns {ImportDefaultSpecifier}
  */
 export function genImportDefaultSpecifier(local) {
   return {
@@ -143,8 +171,8 @@ export function genImportDefaultSpecifier(local) {
 }
 
 /**
- * @param {import("acorn").ExportDefaultDeclaration['declaration']} declaration
- * @returns {import("acorn").ExportDefaultDeclaration}
+ * @param {ExportDefaultDeclaration['declaration']} declaration
+ * @returns {ExportDefaultDeclaration}
  */
 export function genDefaultExport(declaration) {
   return {
@@ -156,9 +184,9 @@ export function genDefaultExport(declaration) {
 }
 
 /**
- * @param {import("acorn").Property['key']} key
- * @param {import("acorn").Property['value']} value
- * @returns {import("acorn").Property}
+ * @param {Property['key']} key
+ * @param {Property['value']} value
+ * @returns {Property}
  */
 export function genProperty(key, value) {
   return {
@@ -178,9 +206,9 @@ export function genProperty(key, value) {
 }
 
 /**
- * @param {import("acorn").AssignmentProperty['key']} key
- * @param {import("acorn").AssignmentProperty['value']} value
- * @returns {import("acorn").AssignmentProperty}
+ * @param {AssignmentProperty['key']} key
+ * @param {AssignmentProperty['value']} value
+ * @returns {AssignmentProperty}
  */
 export function genAssignmentProperty(key, value) {
   return {
@@ -200,8 +228,8 @@ export function genAssignmentProperty(key, value) {
 }
 
 /**
- * @param {...import("acorn").ObjectExpression['properties'][number]} properties
- * @returns {import("acorn").ObjectExpression}
+ * @param {...ObjectExpression['properties'][number]} properties
+ * @returns {ObjectExpression}
  */
 export function genObjectExpression(...properties) {
   return {
@@ -213,8 +241,8 @@ export function genObjectExpression(...properties) {
 }
 
 /**
- * @param {...import("acorn").ObjectPattern['properties'][number]} properties
- * @returns {import("acorn").ObjectPattern}
+ * @param {...ObjectPattern['properties'][number]} properties
+ * @returns {ObjectPattern}
  */
 export function genObjectPattern(...properties) {
   return {
@@ -226,8 +254,8 @@ export function genObjectPattern(...properties) {
 }
 
 /**
- * @param {...import("acorn").ArrayExpression['elements'][number]} elements
- * @returns {import("acorn").ArrayExpression}
+ * @param {...ArrayExpression['elements'][number]} elements
+ * @returns {ArrayExpression}
  */
 export function genArrayExpression(...elements) {
   return {
@@ -239,9 +267,9 @@ export function genArrayExpression(...elements) {
 }
 
 /**
- * @param {import("acorn").CallExpression['callee']} callee
- * @param {...import("acorn").CallExpression['arguments'][number]} args
- * @returns {import("acorn").CallExpression}
+ * @param {CallExpression['callee']} callee
+ * @param {...CallExpression['arguments'][number]} args
+ * @returns {CallExpression}
  */
 export function genCallExpression(callee, ...args) {
   return {
@@ -255,9 +283,9 @@ export function genCallExpression(callee, ...args) {
 }
 
 /**
- * @param {import("acorn").VariableDeclarator['id']} id
- * @param {import("acorn").VariableDeclarator['init']} [init]
- * @returns {import("acorn").VariableDeclarator}
+ * @param {VariableDeclarator['id']} id
+ * @param {VariableDeclarator['init']} [init]
+ * @returns {VariableDeclarator}
  */
 export function genVariableDeclarator(id, init) {
   return {
@@ -270,9 +298,9 @@ export function genVariableDeclarator(id, init) {
 }
 
 /**
- * @param {import("acorn").VariableDeclaration['kind']} kind
- * @param {...import("acorn").VariableDeclaration['declarations'][number]} declarations
- * @returns {import("acorn").VariableDeclaration}
+ * @param {VariableDeclaration['kind']} kind
+ * @param {...VariableDeclaration['declarations'][number]} declarations
+ * @returns {VariableDeclaration}
  */
 export function genVariableDeclaration(kind, ...declarations) {
   return {
@@ -285,10 +313,10 @@ export function genVariableDeclaration(kind, ...declarations) {
 }
 
 /**
- * @param {import("acorn").MemberExpression['object']} object
- * @param {import("acorn").MemberExpression['property']} property
+ * @param {MemberExpression['object']} object
+ * @param {MemberExpression['property']} property
  * @param {{ computed?: boolean, optional?: boolean}} [options]
- * @returns {import("acorn").MemberExpression}
+ * @returns {MemberExpression}
  */
 export function genMemberExpression(
   object,
@@ -309,7 +337,7 @@ export function genMemberExpression(
 /**
  *
  * @param {string} name
- * @returns {import("acorn").Identifier}
+ * @returns {Identifier}
  */
 export function genIdentifier(name) {
   return {
@@ -323,7 +351,7 @@ export function genIdentifier(name) {
 /**
  *
  * @param {string | number | bigint | boolean | RegExp | null | undefined} value
- * @returns {import("acorn").Literal}
+ * @returns {Literal}
  */
 export function genLiteral(value) {
   return {

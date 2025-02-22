@@ -1,31 +1,39 @@
+/**
+@import {
+  AstNode,
+  AstNodeElement,
+  AstNodeText,
+  AstNodeExpression,
+  AstNodeAttribute,
+  AstNodeIf,
+  AstNodeFor
+} from "./types.js"
+@import { Expression } from "acorn"
+*/
+
 import { parseExpressionAt } from "acorn"
 import { genLiteral } from "./ast.js"
 
 /**
  *
  * @param {string} content
- * @returns {import("./types.js").Ast}
+ * @returns {AstNode[]}
  */
 export function parseAst(content) {
   let i = 0
 
-  const ast = {
-    html: parseFragments(() => i < content.length)
-  }
-
-  return ast
+  return parseFragments(() => i < content.length)
 
   /**
    *
    * @param {() => boolean} condition
    */
   function parseFragments(condition) {
-    /** @type {import("./types.js").AstNode[]} */
+    /** @type {AstNode[]} */
     const fragments = []
 
     while (condition()) {
       skipWhitespace()
-      const remaining = content.substring(i)
       const fragment = parseFragment()
       if (fragment) fragments.push(fragment)
       skipWhitespace()
@@ -35,7 +43,7 @@ export function parseAst(content) {
   }
 
   /**
-   * @returns {import("./types.js").AstNode | undefined}
+   * @returns {AstNode | undefined}
    */
   function parseFragment() {
     return (
@@ -49,14 +57,14 @@ export function parseAst(content) {
 
   /**
    *
-   * @returns {import("./types.js").AstNodeElement | undefined}
+   * @returns {AstNodeElement | undefined}
    */
   function parseElement() {
     if (match("<")) {
       eat("<")
       const tagName = readWhileMatching(/[A-z0-9\-\_]/)
       const attributes = parseAttributeList()
-      /** @type {import("./types.js").AstNode[]} */
+      /** @type {AstNode[]} */
       let children = []
       if (match("/>")) {
         eat("/>")
@@ -76,7 +84,7 @@ export function parseAst(content) {
   }
 
   function parseAttributeList() {
-    /** @type {import("./types.js").AstNodeAttribute[]} */
+    /** @type {AstNodeAttribute[]} */
     const attributes = []
     skipWhitespace()
     while (!match(">") && !match("/>")) {
@@ -88,7 +96,7 @@ export function parseAst(content) {
 
   /**
    *
-   * @returns {import("./types.js").AstNodeAttribute}
+   * @returns {AstNodeAttribute}
    */
   function parseAttribute() {
     const name = readWhileMatching(/[^=\s\n>]/)
@@ -135,7 +143,7 @@ export function parseAst(content) {
   }
 
   /**
-   * @returns {import("./types.js").AstNodeIf | undefined}
+   * @returns {AstNodeIf | undefined}
    */
   function parseIf() {
     if (match("@if")) {
@@ -149,9 +157,9 @@ export function parseAst(content) {
       skipWhitespace()
       const then = parseFragments(() => !match("}"))
       eat("}")
-      /** @type {import("./types.js").AstNode[]} */
+      /** @type {AstNode[]} */
       let otherwise = []
-      /** @type {import("./types.js").AstNodeIf[]} */
+      /** @type {AstNodeIf[]} */
       let elifs = []
       skipWhitespace()
       while (match("@else")) {
@@ -194,7 +202,7 @@ export function parseAst(content) {
   }
 
   /**
-   * @returns {import("./types.js").AstNodeFor | undefined}
+   * @returns {AstNodeFor | undefined}
    */
   function parseFor() {
     if (match("@for")) {
@@ -224,7 +232,7 @@ export function parseAst(content) {
       const children = parseFragments(() => !match("}"))
       eat("}")
       skipWhitespace()
-      /** @type {import("./types.js").AstNode[]} */
+      /** @type {AstNode[]} */
       let empty = []
       if (match("@empty")) {
         eat("@empty")
@@ -248,7 +256,7 @@ export function parseAst(content) {
 
   /**
    *
-   * @returns {import("./types.js").AstNodeExpression | undefined}
+   * @returns {AstNodeExpression | undefined}
    */
   function parseExpression() {
     if (match("{{")) {
@@ -266,7 +274,7 @@ export function parseAst(content) {
 
   /**
    *
-   * @returns {import("./types.js").AstNodeText | undefined}
+   * @returns {AstNodeText | undefined}
    */
   function parseText() {
     skipWhitespace()
@@ -284,7 +292,7 @@ export function parseAst(content) {
 
   /**
    * @param {RegExp | ((remaining: string) => boolean)} [condition]
-   * @returns {import("acorn").Expression}
+   * @returns {Expression}
    */
   function parseJavaScript(condition) {
     const start = i

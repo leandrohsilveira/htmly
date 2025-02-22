@@ -1,3 +1,23 @@
+/**
+@import {
+  Program,
+  Pattern,
+  ImportDeclaration,
+  CallExpression,
+  Property,
+} from "acorn"
+@import {
+  AstNode,
+  AstNodeElement,
+  AstNodeAttribute,
+  TransformOptions,
+  AstNodeText,
+  AstNodeExpression,
+  AstNodeIf,
+  AstNodeFor,
+  ComponentInfo,
+} from "./types.js"
+*/
 import { assert } from "@htmly/core"
 import {
   genArrayExpression,
@@ -23,8 +43,8 @@ import { relative } from "./util.js"
 
 /**
  *
- * @param {import("./types.js").TransformOptions} options
- * @returns {import("acorn").Program}
+ * @param {TransformOptions} options
+ * @returns {Program}
  */
 export function transform({ template, info, infos, resolver }) {
   const controller = relative(info.context, info.controller)
@@ -38,16 +58,16 @@ export function transform({ template, info, infos, resolver }) {
   const slotsIdentifier = genIdentifier("$$slots")
 
   /**
-   * @type {Set<import("acorn").Pattern>}
+   * @type {Set<Pattern>}
    */
   const componentFnParams = new Set()
 
   const renderers = new Set([componentIdentifier])
 
-  /** @type {Record<string, import("acorn").ImportDeclaration>} */
+  /** @type {Record<string, ImportDeclaration>} */
   const components = {}
 
-  /** @type {import("acorn").ImportDeclaration[]} */
+  /** @type {ImportDeclaration[]} */
   const imports = []
 
   /** @type {Set<string>} */
@@ -113,8 +133,8 @@ export function transform({ template, info, infos, resolver }) {
   }
 
   /**
-   * @param {import("./types.js").AstNode} ast
-   * @returns {import("acorn").CallExpression | undefined}
+   * @param {AstNode} ast
+   * @returns {CallExpression | undefined}
    */
   function genNode(ast) {
     switch (ast.type) {
@@ -135,8 +155,8 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {import("./types.js").AstNodeElement} element
-   * @returns {import("acorn").CallExpression | undefined}
+   * @param {AstNodeElement} element
+   * @returns {CallExpression | undefined}
    */
   function genElement(element) {
     if (element.name === "") return genFragment(...element.children)
@@ -147,11 +167,11 @@ export function transform({ template, info, infos, resolver }) {
 
     const child = genFragment(...element.children)
 
-    /** @type {import("acorn").CallExpression['arguments']} */
+    /** @type {CallExpression['arguments']} */
     const params = []
 
     if (child || attrs.length > 0 || props.length > 0 || events.length > 0) {
-      /** @type {import("acorn").Property[]} */
+      /** @type {Property[]} */
       const objectProps = []
       if (attrs.length > 0) {
         objectProps.push(
@@ -179,7 +199,7 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {import("./types.js").AstNodeText | import("./types.js").AstNodeExpression} node
+   * @param {AstNodeText | AstNodeExpression} node
    */
   function genText(node) {
     if (node.value === "") return undefined
@@ -193,8 +213,8 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {import("./types.js").AstNodeIf} node
-   * @returns {import("acorn").CallExpression | undefined}
+   * @param {AstNodeIf} node
+   * @returns {CallExpression | undefined}
    */
   function genIf(node) {
     if (
@@ -238,8 +258,8 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {import("./types.js").AstNodeFor} ast
-   * @returns {import("acorn").CallExpression | undefined}
+   * @param {AstNodeFor} ast
+   * @returns {CallExpression | undefined}
    */
   function genFor(ast) {
     const fragment = genFragment(...ast.children)
@@ -252,7 +272,7 @@ export function transform({ template, info, infos, resolver }) {
       "[Transform] for item expression should be an identifier"
     )
 
-    /** @type {import("acorn").Property[]} */
+    /** @type {Property[]} */
     const optional = []
 
     const emptyFragment = genFragment(...ast.empty)
@@ -277,8 +297,8 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param  {...import("./types.js").AstNode} children
-   * @returns {import("acorn").CallExpression | undefined}
+   * @param  {...AstNode} children
+   * @returns {CallExpression | undefined}
    */
   function genFragment(...children) {
     const nodes = children.map(genNode).filter(node => node !== undefined)
@@ -290,16 +310,16 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {import("./types.js").AstNodeElement} ast
-   * @param {import("./types.js").ComponentInfo} componentToImport
-   * @returns {import("acorn").CallExpression}
+   * @param {AstNodeElement} ast
+   * @param {ComponentInfo} componentToImport
+   * @returns {CallExpression}
    */
   function genComponent(ast, componentToImport) {
     const tagName = ast.name
     const varName = tagName.replace(/[-.]/g, "_")
     const identifier = genIdentifier(varName)
 
-    /** @type {Record<string, { nodes: import("./types.js").AstNode[], lets: import("./types.js").AstNodeAttribute[] }[]>} */
+    /** @type {Record<string, { nodes: AstNode[], lets: AstNodeAttribute[] }[]>} */
     const slots = {}
 
     for (const child of ast.children) {
@@ -315,7 +335,7 @@ export function transform({ template, info, infos, resolver }) {
 
     const { attrs, props, events } = genAttributes(ast.attributes)
 
-    /** @type {import("acorn").Property[]} */
+    /** @type {Property[]} */
     const objectProps = []
     if (attrs.length > 0) {
       objectProps.push(
@@ -334,7 +354,7 @@ export function transform({ template, info, infos, resolver }) {
     }
     const slotsNames = Object.keys(slots)
     if (slotsNames.length > 0) {
-      /** @type {import("acorn").Property[]} */
+      /** @type {Property[]} */
       const slotsProperties = []
       for (const slotName of slotsNames) {
         const items = slots[slotName]
@@ -378,8 +398,8 @@ export function transform({ template, info, infos, resolver }) {
   }
 
   /**
-   * @param {import("./types.js").AstNodeElement} ast
-   * @returns {import("acorn").CallExpression}
+   * @param {AstNodeElement} ast
+   * @returns {CallExpression}
    */
   function genSlot(ast) {
     componentFnParams.add(slotsIdentifier)
@@ -403,8 +423,8 @@ export function transform({ template, info, infos, resolver }) {
 
   /**
    *
-   * @param {import("./types.js").AstNodeAttribute[]} attributes
-   * @returns {Record<'attrs' | 'props' | 'events', import("acorn").Property[]>}
+   * @param {AstNodeAttribute[]} attributes
+   * @returns {Record<'attrs' | 'props' | 'events', Property[]>}
    */
   function genAttributes(attributes) {
     return attributes.reduce(
@@ -446,7 +466,7 @@ export function transform({ template, info, infos, resolver }) {
             }
         }
       },
-      /** @type {Record<'attrs' | 'props' | 'events', import("acorn").Property[]>} */ ({
+      /** @type {Record<'attrs' | 'props' | 'events', Property[]>} */ ({
         attrs: [],
         props: [],
         events: []
@@ -456,8 +476,8 @@ export function transform({ template, info, infos, resolver }) {
 }
 
 /**
- * @param {import("./types.js").AstNode} node
- * @returns {{ name: string, nodes: import("./types.js").AstNode[], lets: import("./types.js").AstNodeAttribute[] }}
+ * @param {AstNode} node
+ * @returns {{ name: string, nodes: AstNode[], lets: AstNodeAttribute[] }}
  */
 function toSlot(node) {
   if (node.type !== "Element")
