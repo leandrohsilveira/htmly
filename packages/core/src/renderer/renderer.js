@@ -297,11 +297,11 @@ export function $for({ items, trackBy, empty }, forRef) {
 /**
  * @template {ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
- * @param {Component<I, C>} controller
+ * @param {Component<I, C>} component
  * @param {ComponentElementRef<C, I>} componentRefs
  * @returns {ComponentRef<I>}
  */
-export function $c(controller, componentRefs) {
+export function $c(component, componentRefs) {
   return props =>
     elementRef(() => {
       /** @type {ElementRef | undefined | null} */
@@ -317,7 +317,7 @@ export function $c(controller, componentRefs) {
           return child?.elements ?? []
         },
         mount(renderer, target, after) {
-          const ctx = controller(props)
+          const ctx = component(props)
           child = componentRefs.call(ctx, /** @type {*} */ (props).slots)
           child?.mount(renderer, target, after)
         },

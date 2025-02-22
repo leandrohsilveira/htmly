@@ -91,7 +91,7 @@ export function parseAst(content) {
    * @returns {import("./types.js").AstNodeAttribute}
    */
   function parseAttribute() {
-    const name = readWhileMatching(/[^=\s\n]/)
+    const name = readWhileMatching(/[^=\s\n>]/)
     if (match('="')) {
       eat('="')
       skipWhitespace()

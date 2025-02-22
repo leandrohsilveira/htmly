@@ -67,10 +67,10 @@ export type ControllerInput<P extends ComponentInputDefinition> = {
 
 export type Controller<
   P extends ComponentInputDefinition,
-  C extends Record<string, unknown>
+  C extends Record<string, unknown> = Record<string, unknown>
 > = (input: ControllerInput<P>) => C
 
 export type Component<
   I extends ComponentInputDefinition,
-  C extends Record<string, unknown>
+  C extends Record<string, unknown> = Record<string, unknown>
 > = (props: ComponentInput<I>) => C

@@ -2,6 +2,7 @@ import { assert } from "@htmly/core"
 import {
   genArrayExpression,
   genArrowFunction,
+  genAssignmentProperty,
   genCallExpression,
   genDefaultExport,
   genFunctionExpression,
@@ -12,6 +13,7 @@ import {
   genLiteral,
   genMemberExpression,
   genObjectExpression,
+  genObjectPattern,
   genProperty,
   genReturn,
   genVariableDeclaration,
@@ -117,6 +119,7 @@ export function transform({ template, info, infos, resolver }) {
   function genNode(ast) {
     switch (ast.type) {
       case "Element":
+        if (ast.name === "template") return undefined
         if (ast.name === "slot") return genSlot(ast)
         if (infos[ast.name]) return genComponent(ast, infos[ast.name])
         return genElement(ast)
@@ -296,9 +299,14 @@ export function transform({ template, info, infos, resolver }) {
     const varName = tagName.replace(/[-.]/g, "_")
     const identifier = genIdentifier(varName)
 
-    const defaultSlots = ast.children.filter(
-      el => el.type === "Element" && el.name !== "template"
-    )
+    /** @type {Record<string, { nodes: import("./types.js").AstNode[], lets: import("./types.js").AstNodeAttribute[] }[]>} */
+    const slots = {}
+
+    for (const child of ast.children) {
+      const { name, nodes, lets } = toSlot(child)
+      slots[name] ??= []
+      slots[name].push({ nodes, lets })
+    }
 
     components[tagName] = genImportDeclaration(
       relative(info.context, resolver(componentToImport)),
@@ -324,18 +332,43 @@ export function transform({ template, info, infos, resolver }) {
         genProperty(genIdentifier("events"), genObjectExpression(...events))
       )
     }
-    if (defaultSlots.length > 0) {
-      const defaultElement = genFragment(...defaultSlots)
-      if (defaultElement !== undefined) {
+    const slotsNames = Object.keys(slots)
+    if (slotsNames.length > 0) {
+      /** @type {import("acorn").Property[]} */
+      const slotsProperties = []
+      for (const slotName of slotsNames) {
+        const items = slots[slotName]
+        const callExpression = genFragment(...items.flatMap(item => item.nodes))
+        const contexts = items
+          .flatMap(item => item.lets)
+          .map(item => item.name.replace(/^let-/, ""))
+        if (!callExpression) continue
+        slotsProperties.push(
+          genProperty(
+            genLiteral(slotName),
+            genArrowFunction(
+              {},
+              callExpression,
+              ...(contexts.length > 0
+                ? [
+                    genObjectPattern(
+                      ...contexts.map(name => {
+                        const id = genIdentifier(name)
+                        return genAssignmentProperty(id, id)
+                      })
+                    )
+                  ]
+                : [])
+            )
+          )
+        )
+      }
+
+      if (slotsProperties.length > 0) {
         objectProps.push(
           genProperty(
             genIdentifier("slots"),
-            genObjectExpression(
-              genProperty(
-                genLiteral("default"),
-                genArrowFunction({}, defaultElement)
-              )
-            )
+            genObjectExpression(...slotsProperties)
           )
         )
       }
@@ -351,7 +384,9 @@ export function transform({ template, info, infos, resolver }) {
   function genSlot(ast) {
     componentFnParams.add(slotsIdentifier)
 
-    const { props } = genAttributes(ast.attributes)
+    const { props } = genAttributes(
+      ast.attributes.filter(attr => attr.name !== "name")
+    )
 
     const nameAttr = ast.attributes.find(attr => attr.name === "name")
 
@@ -418,4 +453,22 @@ export function transform({ template, info, infos, resolver }) {
       })
     )
   }
+}
+
+/**
+ * @param {import("./types.js").AstNode} node
+ * @returns {{ name: string, nodes: import("./types.js").AstNode[], lets: import("./types.js").AstNodeAttribute[] }}
+ */
+function toSlot(node) {
+  if (node.type !== "Element")
+    return { name: "default", nodes: [node], lets: [] }
+  if (node.name !== "template")
+    return { name: "default", nodes: [node], lets: [] }
+  const nameAttr = node.attributes.find(attr => attr.name === "slot")
+  const lets = node.attributes.filter(attr => /^let-\w+[\d\w]*/.test(attr.name))
+  if (nameAttr === undefined)
+    return { name: "default", nodes: node.children, lets }
+  if (nameAttr.value.type === "Text")
+    return { name: nameAttr.value.value, nodes: node.children, lets }
+  return { name: "default", nodes: node.children, lets }
 }

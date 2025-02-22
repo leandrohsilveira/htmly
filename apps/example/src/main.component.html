@@ -8,54 +8,49 @@
   <br />
   <br />
 
-  <table>
-    <thead>
+  <app-table [items]="this.tasks()" [trackBy]="(task) => task().id">
+    <template slot="header">
       <tr>
         <th>#ID</th>
         <th>Name</th>
         <th>Status</th>
         <th></th>
       </tr>
-    </thead>
-    <tbody>
-      @for (task of this.tasks(); track task().id) {
-        <tr>
-          <td>{{ task().id.slice(0, 8) }}</td>
-          <td>{{ task().name }}</td>
-          <td>{{ task().done ? "Done" : "Pending" }}</td>
-          <td>
-            <button
-              type="button"
-              [value]="task().id"
-              (onclick)="(this.ontoggle)"
-            >
-              {{ task().done ? "Restart" : "Complete" }}
-            </button>
-            <button type="button" [value]="task().id" (onclick)="(this.onedit)">
-              Edit
-            </button>
-            <button
-              type="button"
-              [value]="task().id"
-              [disabled]="task().id === this.editTask()?.id"
-              (onclick)="(this.onremove)"
-            >
-              Remove
-            </button>
-          </td>
-        </tr>
-      } @empty {
-        <tr class="empty">
-          <td colspan="4">No task found</td>
-        </tr>
-      }
-    </tbody>
-    <tfoot>
+    </template>
+    <template slot="item" let-item>
+      <tr>
+        <td>{{ item().id.slice(0, 8) }}</td>
+        <td>{{ item().name }}</td>
+        <td>{{ item().done ? "Done" : "Pending" }}</td>
+        <td>
+          <button type="button" [value]="item().id" (onclick)="(this.ontoggle)">
+            {{ item().done ? "Restart" : "Complete" }}
+          </button>
+          <button type="button" [value]="item().id" (onclick)="(this.onedit)">
+            Edit
+          </button>
+          <button
+            type="button"
+            [value]="item().id"
+            [disabled]="item().id === this.editTask()?.id"
+            (onclick)="(this.onremove)"
+          >
+            Remove
+          </button>
+        </td>
+      </tr>
+    </template>
+    <template slot="empty">
+      <tr class="empty">
+        <td colspan="4">No task found</td>
+      </tr>
+    </template>
+    <template slot="footer">
       <tr>
         <td colspan="4" [class.empty-test]="this.tasks().length === 0">
           Task count: {{ this.tasks().length }}
         </td>
       </tr>
-    </tfoot>
-  </table>
+    </template>
+  </app-table>
 </app-layout>
