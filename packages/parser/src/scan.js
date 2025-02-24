@@ -1,10 +1,9 @@
 /**
 @import {FoundComponentInfo, ComponentInfo, ScanOptions} from "./types.js"
  */
+import path from "node:path"
 import process from "node:process"
 import { walk } from "./fs.js"
-import path from "node:path"
-import fs from "node:fs"
 
 export const TEMPLATE_REGEX = /component\.htmly?$/
 export const STYLE_REGEX = /component.(css|scss|sass|less|pcss)$/

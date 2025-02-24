@@ -1,5 +1,5 @@
 /**
-@import {Plugin, ViteDevServer} from "vite"
+@import {Plugin, ViteDevServer, ResolvedConfig} from "vite"
 @import {ComponentInfo} from "@htmly/parser"
  */
 import { assert } from "@htmly/core"
@@ -8,6 +8,7 @@ import {
   isComponentFile,
   parseAst,
   scanComponents,
+  TEMPLATE_REGEX,
   transform
 } from "@htmly/parser"
 import { generate } from "escodegen"
@@ -26,9 +27,18 @@ export function vitePlugin() {
   /** @type {ViteDevServer} */
   let server
 
+  /** @type {ResolvedConfig} */
+  let config
+
   return {
     name: "vite-plugin-htmly",
     enforce: "pre",
+    configResolved(_config) {
+      config = _config
+    },
+    async configureServer(viteServer) {
+      server = viteServer
+    },
     async buildStart() {
       infos = await scanComponents(scanDir, info => {
         const context = info.template ?? info.controller ?? info.styles
@@ -44,7 +54,7 @@ export function vitePlugin() {
       if (
         resolved &&
         !resolved.external &&
-        /component.html$/.test(id) &&
+        TEMPLATE_REGEX.test(id) &&
         importer
       ) {
         ids.add(resolved.id)
@@ -76,16 +86,13 @@ export function vitePlugin() {
           resolver: info => info.template
         })
 
-        const code = generate(ast)
+        let code = generate(ast)
 
         return {
           code,
           ast: this.parse(code)
         }
       }
-    },
-    async configureServer(viteServer) {
-      server = viteServer
     },
     async watchChange(id, change) {
       if (change.event === "create") {

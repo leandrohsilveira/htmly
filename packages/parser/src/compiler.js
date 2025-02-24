@@ -1,6 +1,6 @@
 /**
 @import { ComponentInfo } from "@htmly/parser"
-@import { Program } from "acorn"
+@import { Program } from "jscodeshift"
 */
 import { generate } from "escodegen"
 import fs from "node:fs"
@@ -8,7 +8,7 @@ import path from "node:path"
 import process from "node:process"
 import { parseAst } from "./parser.js"
 import { scanComponents } from "./scan.js"
-import { transform } from "./transformer.js"
+import { transform } from "./transform.js"
 
 /**
  *
