@@ -1,18 +1,22 @@
-import { assert, controller, computed, signal } from "@htmly/core"
+/**
+@import { Signal } from "@htmly/core"
+@import { Todo } from "./todo/types.js"
+*/
+import { assert, computed, signal } from "@htmly/core"
 
 /**
  * @typedef {{}} AppInput
  */
 
-/** @type {import("@htmly/core").Signal<import("./todo/types.js").Todo[]>} */
+/** @type {Signal<Todo[]>} */
 const allTasks = signal([])
 
 export const name = "app"
 
-function MainController() {
+export default function AppController() {
   const tasks = computed(() => allTasks())
 
-  /** @type {import("@htmly/core").Signal<import("./todo/types.js").Todo | null>} */
+  /** @type {Signal<Todo | null>} */
   const editTask = signal(null)
 
   return {
@@ -41,7 +45,7 @@ function MainController() {
     },
     /**
      *
-     * @param {Pick<import("./todo/types.js").Todo, 'name'>} payload
+     * @param {Pick<Todo, 'name'>} payload
      */
     onsubmit({ name }) {
       assert(typeof name === "string", "Name is required")
@@ -96,5 +100,3 @@ function MainController() {
     }
   }
 }
-
-export default controller(MainController)

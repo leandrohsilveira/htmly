@@ -13,10 +13,13 @@
 } from "./types.js"
 @import {
  Component,
- ComponentInput,
- ComponentInputDefinition
+ Input,
+ ComponentInputDefinition,
+ Controller,
+ ComponentInput
 } from "../component/types.js"
 */
+import { proxifyInput, proxifySlots } from "../component/component.js"
 import {
   computed,
   constant,
@@ -297,11 +300,11 @@ export function $for({ items, trackBy, empty }, forRef) {
 /**
  * @template {ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
- * @param {Component<I, C>} component
+ * @param {Controller<I, C>} controller
  * @param {ComponentElementRef<C, I>} componentRefs
  * @returns {ComponentRef<I>}
  */
-export function $c(component, componentRefs) {
+export function $c(controller, componentRefs) {
   return props =>
     elementRef(() => {
       /** @type {ElementRef | undefined | null} */
@@ -317,8 +320,8 @@ export function $c(component, componentRefs) {
           return child?.elements ?? []
         },
         mount(renderer, target, after) {
-          const ctx = component(props)
-          child = componentRefs.call(ctx, /** @type {*} */ (props).slots)
+          const ctx = controller(proxifyInput(props))
+          child = componentRefs.call(ctx, proxifySlots(props))
           child?.mount(renderer, target, after)
         },
         unmount(renderer, target) {

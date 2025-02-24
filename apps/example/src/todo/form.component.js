@@ -1,8 +1,8 @@
 /** 
-@import { ControllerInput } from "@htmly/core"
+@import { Input } from "@htmly/core"
 @import { Todo } from "./types.js"
 */
-import { controller, computed } from "@htmly/core"
+import { computed } from "@htmly/core"
 
 /**
  * @typedef TodoFormProps
@@ -17,9 +17,9 @@ import { controller, computed } from "@htmly/core"
 
 /**
  *
- * @param {ControllerInput<{ props: TodoFormProps, events: TodoFormEvents }>} input
+ * @param {Input<{ props: TodoFormProps, events: TodoFormEvents }>} input
  */
-export function TodoFormController({
+export default function TodoFormController({
   props: { value },
   events: { onsubmit, oncancel }
 }) {
@@ -40,10 +40,6 @@ export function TodoFormController({
       onsubmit({ name })
       input.value = ""
     },
-    oncancel() {
-      oncancel()
-    }
+    oncancel
   }
 }
-
-export default controller(TodoFormController)

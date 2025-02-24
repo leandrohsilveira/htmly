@@ -3,15 +3,15 @@
     <slot name="header"></slot>
   </thead>
   <tbody>
-    @for (item of this.items(); track this.trackBy()(item)) {
-    <slot name="item" [item]="item()"></slot>
+    @for (item of this.items(); track this.trackBy()(item())) {
+      <slot name="item" [item]="item()"></slot>
     } @empty {
-    <slot name="empty"></slot>
+      <slot name="empty"></slot>
     }
   </tbody>
   @if (this.hasFooter) {
-  <tfoot>
-    <slot name="footer"></slot>
-  </tfoot>
+    <tfoot>
+      <slot name="footer"></slot>
+    </tfoot>
   }
 </table>

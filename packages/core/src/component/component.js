@@ -1,37 +1,39 @@
-/**
-@import {
-  Component,
-  ComponentInputDefinition,
-  Controller,
-} from "./types.js"
- */
+import { $f } from "../renderer/renderer.js"
 import { constant, isSignal, toReadableSignal } from "../signal/signal.js"
 
 /**
- * @template {ComponentInputDefinition} I
- * @template {Record<string, unknown>} C
- * @param {Controller<I, C>} controllerFn
- * @returns {Component<I, C>}
+ * @param {*} param
+ * @returns {*}
  */
-export function controller(controllerFn) {
-  /**
-   * @param {*} input
-   */
-  return ({ props, events, slots = {} }) => {
-    const context = controllerFn({
-      get props() {
-        return proxifyProps(props)
-      },
-      get events() {
-        return proxifyEvents(events)
-      },
-      get slots() {
-        return handleSlots(slots)
-      }
-    })
-
-    return context
+export function proxifyInput({ props, events, slots = {} }) {
+  return {
+    get props() {
+      return proxifyProps(props)
+    },
+    get events() {
+      return proxifyEvents(events)
+    },
+    get slots() {
+      return handleInputSlots(slots)
+    }
   }
+}
+
+/**
+ * @param {*} input
+ * @returns {*}
+ */
+export function proxifySlots({ slots = {} }) {
+  return new Proxy(slots, {
+    get(target, prop) {
+      if (prop in target) {
+        const value = target[String(prop)]
+        if (typeof value === "function") return value
+        return () => value
+      }
+      return () => $f()
+    }
+  })
 }
 
 /**
@@ -75,7 +77,7 @@ function proxifyEvents(input) {
  * @param {*} slots
  * @returns {*}
  */
-function handleSlots(slots) {
+function handleInputSlots(slots) {
   if (!slots) return {}
   return Object.fromEntries(
     Object.entries(slots).map(([key, value]) => [

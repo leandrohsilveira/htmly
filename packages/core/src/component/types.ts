@@ -23,11 +23,17 @@ export type InputEvents<T> = {
   [K in keyof T]: (event: T[K]) => void
 }
 
-export type InputSlots<T, El = unknown, Ref = El> = {
-  [K in keyof T]: (context: T[K]) => ElementRef<El, Ref>
+export type InputSlotContext<T> = {
+  [K in keyof T]: () => T[K]
 }
 
-export type Prop<T> = T extends Function ? T : T | (() => T)
+export type InputSlots<T, El = unknown, Ref = El> = {
+  [K in keyof T]: (context: InputSlotContext<T[K]>) => ElementRef<El, Ref>
+}
+
+export type ComponentSlots<T, El = unknown, Ref = El> = {
+  [K in keyof T]-?: (context: InputSlotContext<T[K]>) => ElementRef<El, Ref>
+}
 
 export type ComponentInput<
   T extends ComponentInputDefinition,
@@ -59,7 +65,7 @@ export type SlotsRef<T extends ComponentInputDefinition> = {
   [K in keyof T["slots"]]-?: boolean
 }
 
-export type ControllerInput<P extends ComponentInputDefinition> = {
+export type Input<P extends ComponentInputDefinition> = {
   props: PropsRef<P>
   events: EventsRef<P>
   slots: SlotsRef<P>
@@ -68,7 +74,7 @@ export type ControllerInput<P extends ComponentInputDefinition> = {
 export type Controller<
   P extends ComponentInputDefinition,
   C extends Record<string, unknown> = Record<string, unknown>
-> = (input: ControllerInput<P>) => C
+> = (input: Input<P>) => C
 
 export type Component<
   I extends ComponentInputDefinition,

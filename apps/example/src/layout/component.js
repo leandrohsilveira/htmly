@@ -1,18 +1,14 @@
 /**
-@import {ControllerInput} from "@htmly/core"
+@import {Input} from "@htmly/core"
 */
-import { controller } from "@htmly/core"
-
 /**
  * @typedef LayoutSlots
  * @property {void} default
  */
 
 /**
- * @param {ControllerInput<{slots: LayoutSlots}>} input
+ * @param {Input<{slots: LayoutSlots}>} input
  */
-function LayoutController({}) {
+export default function LayoutController({}) {
   return {}
 }
-
-export default controller(LayoutController)

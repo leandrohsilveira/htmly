@@ -70,7 +70,7 @@ function componentName(scanDir, file, options = {}) {
     .replace(TEMPLATE_REGEX, "")
     .replace(CONTROLLER_REGEX, "")
     .replace(/[\.\-\_]$/, "")
-  const name = `${prefix}-${baseName}`
+  const name = baseName ? `${prefix}-${baseName}` : `${prefix}`
   return { name, baseName }
 }
 

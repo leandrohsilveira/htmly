@@ -1,10 +1,12 @@
+/**
+@import { InputDefinition, ComponentInput } from "../component/types.js"
+@import { Renderer, ComponentRef } from "../renderer/types.js"
+*/
 import { render as _render } from "../renderer/index.js"
 import { assert } from "../util/assert.js"
 
-const elementProps = ["value", "disabled", "checked"]
-
 /**
- * @type {import("../renderer/types.js").Renderer<Element, Text, (e: Event) => void>}
+ * @type {Renderer<Element, Text, (e: Event) => void>}
  */
 const domRenderer = {
   mount,
@@ -100,10 +102,10 @@ function isAfter([ref], target) {
 }
 
 /**
- * @template {import("../component/types.js").InputDefinition} P
+ * @template {InputDefinition} P
  * @param {Element | string} target
- * @param {import("../renderer/types.js").ComponentRef<P>} component
- * @param {import("../component/types.js").ComponentInput<P>} props
+ * @param {ComponentRef<P>} component
+ * @param {ComponentInput<P>} props
  */
 export function render(target, component, props) {
   const targetEl =

@@ -1,11 +1,11 @@
 import type {
   ComponentInput,
   ComponentInputDefinition,
+  ComponentSlots,
   InputAttrs,
   InputDefinition,
   InputEvents,
-  InputProps,
-  InputSlots
+  InputProps
 } from "../component/types.js"
 import { ReadableSignal, Signal } from "../signal/types.js"
 
@@ -53,12 +53,12 @@ export type ComponentRef<
 
 export type ComponentElementRef<
   Ctx extends Record<string, unknown>,
-  I extends ComponentInputDefinition,
+  Def extends ComponentInputDefinition,
   El = unknown,
   Ref = El
 > = (
   this: Ctx,
-  slots: InputSlots<I["slots"], El, Ref>
+  slots: ComponentSlots<Def["slots"], El, Ref>
 ) => ElementRef<El, Ref> | null
 
 export type IfProps<El = unknown, Ref = El> = {

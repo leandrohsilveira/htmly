@@ -5,6 +5,7 @@
   "type": "module",
   "types": "types.d.ts",
   "scripts": {
+    "parse": "node ./parse.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
