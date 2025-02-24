@@ -1,14 +1,13 @@
-/**
-@import {Expression, PrivateIdentifier} from "acorn"
-*/
 import { describe, expect, it } from "vitest"
 import { parseAst } from "./parser.js"
 import {
+  gen,
+  genThisCallExpression,
   genCallExpression,
   genIdentifier,
   genLiteral,
   genMemberExpression
-} from "./ast.js"
+} from "./testing/ast.js"
 
 describe("parseAst function", () => {
   it("should parse elements", () => {
@@ -409,24 +408,3 @@ describe("parseAst function", () => {
     ])
   })
 })
-
-/**
- *
- * @param {*} exp
- */
-function gen({ start, end, ...obj }) {
-  return expect.objectContaining(obj)
-}
-
-/**
- *
- * @param {Expression | PrivateIdentifier} property
- * @returns
- */
-function genThisCallExpression(property) {
-  return gen(
-    genCallExpression(
-      gen(genMemberExpression(gen({ type: "ThisExpression" }), gen(property)))
-    )
-  )
-}

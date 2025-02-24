@@ -22,9 +22,32 @@
   CallExpression,
   VariableDeclarator,
   VariableDeclaration,
-  MemberExpression
+  MemberExpression,
+  PrivateIdentifier
 } from "acorn"
 */
+import { expect } from "vitest"
+
+/**
+ *
+ * @param {*} exp
+ */
+export function gen({ start, end, ...obj }) {
+  return expect.objectContaining(obj)
+}
+
+/**
+ *
+ * @param {Expression | PrivateIdentifier} property
+ * @returns
+ */
+export function genThisCallExpression(property) {
+  return gen(
+    genCallExpression(
+      gen(genMemberExpression(gen({ type: "ThisExpression" }), gen(property)))
+    )
+  )
+}
 
 /**
  * @param {{ async?: boolean, generator?: boolean, expression?: boolean }} options

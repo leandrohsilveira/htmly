@@ -11,10 +11,8 @@
 } from "./types.js"
 @import { Expression } from "acorn"
 */
-
-import { parseExpressionAt } from "acorn"
-import { genLiteral } from "./ast.js"
 import { assert } from "@htmly/core"
+import { parseExpressionAt } from "acorn"
 
 /**
  *
@@ -138,7 +136,13 @@ export function parseAst(content) {
         kind: "Flag",
         value: {
           type: "Expression",
-          value: genLiteral(true)
+          value: {
+            type: "Literal",
+            start: 0,
+            end: 0,
+            value: true,
+            raw: "true"
+          }
         }
       }
     }
