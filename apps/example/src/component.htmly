@@ -17,22 +17,22 @@
         <th></th>
       </tr>
     </template>
-    <template slot="item" let-item>
+    <template slot="item" let-item="task">
       <tr>
-        <td>{{ item().id.slice(0, 8) }}</td>
-        <td>{{ item().name }}</td>
-        <td>{{ item().done ? "Done" : "Pending" }}</td>
+        <td>{{ task().id.slice(0, 8) }}</td>
+        <td>{{ task().name }}</td>
+        <td>{{ task().done ? "Done" : "Pending" }}</td>
         <td>
-          <button type="button" [value]="item().id" (onclick)="(this.ontoggle)">
-            {{ item().done ? "Restart" : "Complete" }}
+          <button type="button" [value]="task().id" (onclick)="(this.ontoggle)">
+            {{ task().done ? "Restart" : "Complete" }}
           </button>
-          <button type="button" [value]="item().id" (onclick)="(this.onedit)">
+          <button type="button" [value]="task().id" (onclick)="(this.onedit)">
             Edit
           </button>
           <button
             type="button"
-            [value]="item().id"
-            [disabled]="item().id === this.editTask()?.id"
+            [value]="task().id"
+            [disabled]="task().id === this.editTask()?.id"
             (onclick)="(this.onremove)"
           >
             Remove

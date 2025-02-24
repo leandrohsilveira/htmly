@@ -6,9 +6,9 @@ import { walk } from "./fs.js"
 import path from "node:path"
 import fs from "node:fs"
 
-const TEMPLATE_REGEX = /component\.html$/
-const STYLE_REGEX = /component.(css|scss|sass|less|pcss)$/
-const CONTROLLER_REGEX = /component\.(js|ts|cjs|mjs|cts|mts)$/
+export const TEMPLATE_REGEX = /component\.htmly?$/
+export const STYLE_REGEX = /component.(css|scss|sass|less|pcss)$/
+export const CONTROLLER_REGEX = /component\.(js|ts|cjs|mjs|cts|mts)$/
 
 /**
  *

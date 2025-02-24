@@ -1,6 +1,7 @@
 {
     "files.associations": {
-        "*.css": "css"
+        "*.css": "css",
+        "*.htmly": "html"
     },
     "css.validate": true
 }
