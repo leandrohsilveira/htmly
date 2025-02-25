@@ -8,11 +8,14 @@ import {
   isComponentFile,
   parseAst,
   scanComponents,
+  STYLE_REGEX,
   TEMPLATE_REGEX,
-  transform
+  transform,
+  transformCss
 } from "@htmly/parser"
 import { generate } from "escodegen"
 import path from "node:path"
+import { preprocessCSS } from "vite"
 
 /**
  * @returns {Plugin}
@@ -20,6 +23,7 @@ import path from "node:path"
 export function vitePlugin() {
   const scanDir = "./src"
   const templates = new Set()
+  const styles = new Set()
 
   /** @type {Record<string, ComponentInfo>} */
   let infos
@@ -33,6 +37,13 @@ export function vitePlugin() {
   return {
     name: "vite-plugin-htmly",
     enforce: "pre",
+    config() {
+      return {
+        css: {
+          transformer: "lightningcss"
+        }
+      }
+    },
     configResolved(_config) {
       config = _config
     },
@@ -72,7 +83,10 @@ export function vitePlugin() {
         return resolved
       }
 
-      
+      if (resolved && !resolved.external && STYLE_REGEX.test(id) && importer) {
+        styles.add(resolved.id)
+        return resolved
+      }
 
       return null
     },
@@ -105,6 +119,25 @@ export function vitePlugin() {
         return {
           code,
           ast: this.parse(code)
+        }
+      }
+      if (styles.has(id)) {
+        assert(
+          infos !== undefined,
+          "Component info map should not be undefined at watchChange event"
+        )
+        const componentName = Object.keys(infos).find(
+          name => infos[name].styles === fileName
+        )
+        assert(
+          componentName !== undefined,
+          `Component not found for file id "${fileName}"`
+        )
+        const preprocessed = await preprocessCSS(src, id, config)
+        const { code } = transformCss(preprocessed.code, infos[componentName])
+
+        return {
+          code
         }
       }
     },

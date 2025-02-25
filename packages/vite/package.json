@@ -10,7 +10,8 @@
   "dependencies": {
     "@htmly/core": "*",
     "@htmly/parser": "*",
-    "escodegen": "^2.1.0"
+    "escodegen": "^2.1.0",
+    "lightningcss": "^1.29.1"
   },
   "exports": {
     ".": {

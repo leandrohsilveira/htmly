@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/css": "^0.0.38",
     "@types/jscodeshift": "^0.12.0",
     "@vitest/coverage-istanbul": "^3.0.6",
     "@vitest/ui": "^3.0.6",
