@@ -120,6 +120,7 @@ export interface FoundComponentInfo {
 }
 
 export interface ComponentInfo {
+  name: string
   baseName: string
   context: string
   template: string

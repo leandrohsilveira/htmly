@@ -117,9 +117,7 @@ button {
   padding: 0.5rem;
 }
 
-table {
-  th,
-  td {
-    padding: 0.5rem;
-  }
+table th,
+table td {
+  padding: 0.5rem;
 }

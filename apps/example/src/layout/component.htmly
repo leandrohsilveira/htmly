@@ -1,6 +1,0 @@
-<h1>Todo App Layout</h1>
-
-<br />
-<br />
-
-<slot></slot>

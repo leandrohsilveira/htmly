@@ -19,7 +19,7 @@ import path from "node:path"
  */
 export function vitePlugin() {
   const scanDir = "./src"
-  const ids = new Set()
+  const templates = new Set()
 
   /** @type {Record<string, ComponentInfo>} */
   let infos
@@ -40,41 +40,55 @@ export function vitePlugin() {
       server = viteServer
     },
     async buildStart() {
-      infos = await scanComponents(scanDir, info => {
-        const context = info.template ?? info.controller ?? info.styles
-        assert(
-          context !== undefined,
-          `Unable to determine context for ${info.baseName}`
-        )
-        return path.dirname(context)
-      })
+      infos = await scanComponents(
+        scanDir,
+        info => {
+          const context = info.template ?? info.controller ?? info.styles
+          assert(
+            context !== undefined,
+            `Unable to determine context for ${info.baseName}`
+          )
+          return path.dirname(context)
+        },
+        {
+          cwd: config.root
+        }
+      )
     },
-    async resolveId(id, importer) {
-      const resolved = await this.resolve(id, importer)
+    async resolveId(id, importer, options) {
+      const resolved = await this.resolve(id, importer, options)
       if (
         resolved &&
         !resolved.external &&
         TEMPLATE_REGEX.test(id) &&
         importer
       ) {
-        ids.add(resolved.id)
+        templates.add(resolved.id)
+        if (config.command === "build")
+          return {
+            ...resolved,
+            id: `${resolved.id}?htmly`
+          }
         return resolved
       }
+
+      
 
       return null
     },
     async transform(src, id) {
-      if (ids.has(id)) {
+      const fileName = id.replace(/\?htmly$/, "")
+      if (templates.has(fileName)) {
         assert(
           infos !== undefined,
           "Component info map should not be undefined at watchChange event"
         )
         const componentName = Object.keys(infos).find(
-          name => infos[name].template === id
+          name => infos[name].template === fileName
         )
         assert(
           componentName !== undefined,
-          `Component not found for file id "${id}"`
+          `Component not found for file id "${fileName}"`
         )
 
         const template = parseAst(src)
@@ -101,7 +115,7 @@ export function vitePlugin() {
         this.info({
           message: `New component detected ${detection.name}`
         })
-        infos[detection.name] = detection.info
+        infos[detection.name] = detection
         return
       }
       if (change.event === "delete" && isComponentFile(id)) {

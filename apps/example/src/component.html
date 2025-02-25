@@ -5,9 +5,6 @@
     (oncancel)="(this.oncancel)"
   />
 
-  <br />
-  <br />
-
   <app-table [items]="this.tasks()" [trackBy]="(task) => task.id">
     <template slot="header">
       <tr>
