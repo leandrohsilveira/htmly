@@ -8,11 +8,11 @@
     "test": "vitest run",
     "test:ui": "vitest --ui"
   },
-  "author": "",
+  "author": "Leandro Hinckel Silveira (leandro.hinckel@gmail.com)",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/css": "^0.0.38",
+    "@types/css-tree": "^2.3.10",
     "@types/jscodeshift": "^0.12.0",
     "@vitest/coverage-istanbul": "^3.0.6",
     "@vitest/ui": "^3.0.6",

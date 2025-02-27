@@ -20,7 +20,6 @@
 import { assert } from "@htmly/core"
 import jscodeshift from "jscodeshift"
 import { parseTagNameToVarName, relative } from "./util.js"
-import { generateCssScopeAttribute } from "./style.js"
 
 const {
   callExpression,
@@ -241,11 +240,11 @@ function onAttributes(root, node) {
   /** @type {Property[]} */
   const events = []
 
-  if (root.info.styles && node.name !== "slot" && node.name !== "template")
+  if (root.info.scope && node.name !== "slot" && node.name !== "template")
     node.attributes.push({
       type: "Attribute",
       kind: "Flag",
-      name: generateCssScopeAttribute(root.info.name),
+      name: root.info.scope,
       value: {
         type: "Expression",
         value: { type: "Literal", start: 0, end: 0, value: true }

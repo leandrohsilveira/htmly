@@ -1,18 +1,7 @@
 /**
-@import { Rule, Comment, AtRule, Stylesheet } from "css"
 @import { ComponentInfo } from "./types.js"
 */
-import { assert } from "@htmly/core"
-import css from "css"
-
-/**
- *
- * @param {string} name
- * @returns {string}
- */
-export function generateCssScopeAttribute(name) {
-  return `_htmly_${name}_element`
-}
+import * as csstree from "css-tree"
 
 /**
  * @typedef TransformStyleContext
@@ -21,67 +10,39 @@ export function generateCssScopeAttribute(name) {
 
 /**
  * @param {string} input
- * @param {ComponentInfo} info
- * @return {{ code: string, ast: Stylesheet }}
+ * @param {string} scope
+ * @return {string}
  */
-export function transformCss(input, info) {
-  const ast = css.parse(input)
+export function scopeCss(input, scope) {
+  const ast = csstree.parse(input)
+  const selector = csstree.parse(`[${scope}]`, { context: "selector" })
+  csstree.walk(ast, function (node, item, list) {
+    switch (node.type) {
+      case "Raw":
+        const replace = csstree.parse(node.value, { context: "selector" })
+        list.replace(item, list.createItem(replace))
+        break
+      case "PseudoClassSelector":
+        if (item.prev) {
+          list.insert(list.createItem(selector), item)
+        }
+        break
+      case "PseudoElementSelector":
+      case "Combinator":
+        list.insert(list.createItem(selector), item)
+        return this.skip
+      case "AttributeSelector":
+        if (!item.next && node.name.name === scope) return this.skip
+      case "ClassSelector":
+      case "IdSelector":
+      case "TypeSelector":
+        if (!item.next) {
+          list.append(list.createItem(selector))
+          return this.skip
+        }
+        break
+    }
+  })
 
-  /** @type {TransformStyleContext} */
-  const root = {
-    info
-  }
-
-  assert(ast.stylesheet !== undefined, "Stylesheet file shouldn't be undefined")
-
-  onRules(root, ast.stylesheet.rules)
-
-  return {
-    code: css.stringify(ast),
-    ast
-  }
-}
-
-/**
- * @param {TransformStyleContext} root
- * @param {(Rule | Comment | AtRule)[]} rules
- */
-function onRules(root, rules) {
-  for (const rule of rules) {
-    onRuleOrCommentOrAtRule(root, rule)
-  }
-}
-
-/**
- * @param {TransformStyleContext} root
- * @param {Rule | Comment | AtRule} rule
- */
-function onRuleOrCommentOrAtRule(root, rule) {
-  switch (rule.type) {
-    case "rule":
-    case "page":
-      return onRule(root, rule)
-    case "document":
-    case "host":
-    case "media":
-    case "supports":
-      if (!rule.rules) return
-      return onRules(root, rule.rules)
-  }
-}
-
-/**
- *
- * @param {TransformStyleContext} root
- * @param {Pick<Rule, 'selectors'>} rule
- */
-function onRule(root, rule) {
-  if (!rule.selectors?.length) return
-  const scopeAttr = generateCssScopeAttribute(root.info.name)
-  rule.selectors = rule.selectors.map(selector =>
-    selector
-      .split(" ")
-      .map(token => `${token}[${scopeAttr}]`)
-      .join(" ")
-  )
+  return csstree.generate(ast)
 }

@@ -20,6 +20,7 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
   const root = path.resolve(cwd, scanDir)
   /** @type {Record<string, FoundComponentInfo>} */
   const found = {}
+
   for await (const currentPath of await walk(root)) {
     if (!isComponentFile(currentPath)) continue
     const { name, baseName } = componentName(root, currentPath, options)
@@ -29,6 +30,8 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
     if (CONTROLLER_REGEX.test(currentPath)) found[name].controller = currentPath
     if (STYLE_REGEX.test(currentPath)) found[name].styles = currentPath
   }
+
+  const genCssScope = options.genCssScope ?? defaultGenCssScope
 
   /** @type {Record<string, ComponentInfo>} */
   const infos = {}
@@ -46,7 +49,8 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
       baseName: info.baseName,
       controller: info.controller,
       template: info.template,
-      styles: info.styles
+      styles: info.styles,
+      scope: info.styles ? genCssScope(name) : undefined
     }
   }
 
@@ -97,6 +101,8 @@ export async function detectComponent(scanDir, file, options = {}) {
     }
 
     if (found.template && found.controller) {
+      const genCssScope = options.genCssScope ?? defaultGenCssScope
+
       const component = path.resolve(context, `${name}.js`)
       return {
         name,
@@ -105,7 +111,8 @@ export async function detectComponent(scanDir, file, options = {}) {
         component,
         controller: found.controller,
         template: found.template,
-        styles: found.styles
+        styles: found.styles,
+        scope: found.styles ? genCssScope(name) : undefined
       }
     }
   }
@@ -122,4 +129,13 @@ export function isComponentFile(file) {
     STYLE_REGEX.test(file) ||
     CONTROLLER_REGEX.test(file)
   )
+}
+
+/**
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+function defaultGenCssScope(name) {
+  return `_${name}_`
 }

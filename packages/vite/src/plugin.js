@@ -11,11 +11,12 @@ import {
   STYLE_REGEX,
   TEMPLATE_REGEX,
   transform,
-  transformCss
+  scopeCss
 } from "@htmly/parser"
 import { generate } from "escodegen"
 import path from "node:path"
 import { preprocessCSS } from "vite"
+import { generateRandomString } from "./util.js"
 
 /**
  * @returns {Plugin}
@@ -24,6 +25,7 @@ export function vitePlugin() {
   const scanDir = "./src"
   const templates = new Set()
   const styles = new Set()
+  const scopes = new Set()
 
   /** @type {Record<string, ComponentInfo>} */
   let infos
@@ -33,6 +35,9 @@ export function vitePlugin() {
 
   /** @type {ResolvedConfig} */
   let config
+
+  /** @type {((componentName: string) => string) | undefined} */
+  let genCssScope = undefined
 
   return {
     name: "vite-plugin-htmly",
@@ -46,6 +51,19 @@ export function vitePlugin() {
     },
     configResolved(_config) {
       config = _config
+      if (config.command === "build") {
+        genCssScope = () => {
+          let size = 3
+          let scope
+          do {
+            const random = generateRandomString(size)
+            scope = `_${random}_`
+            size++
+          } while (scopes.has(scope))
+          scopes.add(scope)
+          return scope
+        }
+      }
     },
     async configureServer(viteServer) {
       server = viteServer
@@ -62,7 +80,8 @@ export function vitePlugin() {
           return path.dirname(context)
         },
         {
-          cwd: config.root
+          cwd: config.root,
+          genCssScope
         }
       )
     },
@@ -133,11 +152,13 @@ export function vitePlugin() {
           componentName !== undefined,
           `Component not found for file id "${fileName}"`
         )
-        const preprocessed = await preprocessCSS(src, id, config)
-        const { code } = transformCss(preprocessed.code, infos[componentName])
+        const info = infos[componentName]
+        if (info.scope) {
+          const { code } = await preprocessCSS(src, id, config)
 
-        return {
-          code
+          return {
+            code: scopeCss(code, info.scope)
+          }
         }
       }
     },

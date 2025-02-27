@@ -4,7 +4,7 @@
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",
-  "author": "",
+  "author": "Leandro Hinckel Silveira (leandro.hinckel@gmail.com)",
   "license": "ISC",
   "description": "",
   "dependencies": {
