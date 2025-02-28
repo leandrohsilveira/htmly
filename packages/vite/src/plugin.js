@@ -166,22 +166,19 @@ export function vitePlugin() {
       if (change.event === "create") {
         const detection = await detectComponent(scanDir, id)
         if (detection === null) return
-        if (!infos[detection.name])
+        if (!infos[detection.name]) {
           this.info({
             message: `New component detected ${detection.name}`
           })
-        else {
+          infos[detection.name] = detection
+        } else {
           this.info({
             message: `Component ${detection.name} info updated`
           })
-          const module = server.moduleGraph.getModuleById(
-            detection.info.template
-          )
+          const module = server.moduleGraph.getModuleById(detection.template)
           assert(module !== undefined, "Module cant be undefined")
           server.reloadModule(module)
         }
-        infos[detection.name] = detection
-
         return
       }
       if (change.event === "delete" && isComponentFile(id)) {
