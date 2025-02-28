@@ -1,15 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { parseAst } from "./parser.js"
-import {
-  gen,
-  genThisCallExpression,
-  genCallExpression,
-  genIdentifier,
-  genLiteral,
-  genMemberExpression,
-  genRegex,
-  astHelper
-} from "./testing/ast.js"
+import { astHelper, t } from "./testing/ast.js"
 
 describe("parseAst function", () => {
   it("should parse elements", () => {
@@ -17,7 +8,7 @@ describe("parseAst function", () => {
 
     expect(result).toEqual([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [],
         children: []
@@ -30,7 +21,7 @@ describe("parseAst function", () => {
 
     expect(result).toEqual([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [],
         children: []
@@ -43,7 +34,7 @@ describe("parseAst function", () => {
 
     expect(result).toEqual([
       {
-        type: "Text",
+        type: t.Text,
         value: "Hello world"
       }
     ])
@@ -52,10 +43,23 @@ describe("parseAst function", () => {
   it("should parse expressions", () => {
     const result = parseAst("{{ this.foo() }}")
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "Expression",
-        value: genThisCallExpression(genIdentifier("foo"))
+        type: t.Expression,
+        value: {
+          type: t.CallExpression,
+          callee: {
+            type: t.MemberExpression,
+            object: {
+              type: t.ThisExpression
+            },
+            property: {
+              type: t.Identifier,
+              name: "foo"
+            }
+          },
+          arguments: []
+        }
       }
     ])
   })
@@ -65,15 +69,15 @@ describe("parseAst function", () => {
 
     expect(result).toEqual([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [
           {
-            type: "Attribute",
+            type: t.Attribute,
             name: "foo",
-            kind: "Literal",
+            kind: t.Literal,
             value: {
-              type: "Text",
+              type: t.Text,
               value: "bar"
             }
           }
@@ -86,18 +90,30 @@ describe("parseAst function", () => {
   it("should parse element properties", () => {
     const result = parseAst('<div [foo]="this.bar()"></div>')
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [
           {
-            type: "Attribute",
+            type: t.Attribute,
             name: "foo",
             kind: "Property",
             value: {
-              type: "Expression",
-              value: genThisCallExpression(genIdentifier("bar"))
+              type: t.Expression,
+              value: {
+                type: t.CallExpression,
+                callee: {
+                  type: t.MemberExpression,
+                  object: {
+                    type: t.ThisExpression
+                  },
+                  property: {
+                    type: t.Identifier,
+                    name: "bar"
+                  }
+                }
+              }
             }
           }
         ],
@@ -109,23 +125,27 @@ describe("parseAst function", () => {
   it("should parse element events", () => {
     const result = parseAst('<div (foo)="(this.bar)"></div>')
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [
           {
-            type: "Attribute",
+            type: t.Attribute,
             name: "foo",
             kind: "Event",
             value: {
-              type: "Expression",
-              value: gen(
-                genMemberExpression(
-                  gen({ type: "ThisExpression" }),
-                  gen(genIdentifier("bar"))
-                )
-              )
+              type: t.Expression,
+              value: {
+                type: t.MemberExpression,
+                object: {
+                  type: t.ThisExpression
+                },
+                property: {
+                  type: t.Identifier,
+                  name: "bar"
+                }
+              }
             }
           }
         ],
@@ -137,18 +157,21 @@ describe("parseAst function", () => {
   it("should parse element flags", () => {
     const result = parseAst("<div foo></div>")
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [
           {
-            type: "Attribute",
+            type: t.Attribute,
             name: "foo",
             kind: "Flag",
             value: {
-              type: "Expression",
-              value: gen(genLiteral(true))
+              type: t.Expression,
+              value: {
+                type: t.Literal,
+                value: true
+              }
             }
           }
         ],
@@ -162,12 +185,12 @@ describe("parseAst function", () => {
 
     expect(result).toEqual([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [],
         children: [
           {
-            type: "Element",
+            type: t.Element,
             name: "div",
             attributes: [],
             children: []
@@ -182,12 +205,12 @@ describe("parseAst function", () => {
 
     expect(result).toEqual([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [],
         children: [
           {
-            type: "Text",
+            type: t.Text,
             value: "foo"
           }
         ]
@@ -198,15 +221,28 @@ describe("parseAst function", () => {
   it("should parse elements with expressions", () => {
     const result = parseAst("<div>{{ this.foo() }}</div>")
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "Element",
+        type: t.Element,
         name: "div",
         attributes: [],
         children: [
           {
-            type: "Expression",
-            value: genThisCallExpression(genIdentifier("foo"))
+            type: t.Expression,
+            value: {
+              type: t.CallExpression,
+              callee: {
+                type: t.MemberExpression,
+                object: {
+                  type: t.ThisExpression
+                },
+                property: {
+                  type: t.Identifier,
+                  name: "foo"
+                }
+              },
+              arguments: []
+            }
           }
         ]
       }
@@ -220,10 +256,10 @@ describe("parseAst function", () => {
 
     expect(
       helper
-        .find("Expression", { parent: "Element" })
-        .find("CallExpression")
-        .find("MemberExpression")
-        .find("Literal")
+        .find(t.Expression, { parent: t.Element })
+        .find(t.CallExpression)
+        .find(t.MemberExpression)
+        .find(t.Literal)
     ).toMatchObject({
       value: {
         regex: {
@@ -244,13 +280,13 @@ describe("parseAst function", () => {
         }
     `)
 
-    const $if = astHelper(result).find("If")
+    const $if = astHelper(result).find(t.If)
 
-    expect($if.find("CallExpression", { key: "test" })).toMatchObject({
+    expect($if.find(t.CallExpression, { key: "test" })).toMatchObject({
       value: {
         callee: {
           object: {
-            type: "ThisExpression"
+            type: t.ThisExpression
           },
           property: {
             name: "foo"
@@ -260,26 +296,26 @@ describe("parseAst function", () => {
       }
     })
 
-    expect($if.find("Element", { key: "then", index: 0 })).toMatchObject({
+    expect($if.find(t.Element, { key: "then", index: 0 })).toMatchObject({
       value: {
         attributes: [],
         name: "div",
         children: [
           {
-            type: "Text",
+            type: t.Text,
             value: "foo"
           }
         ]
       }
     })
 
-    const $elseif = $if.find("ElseIf", { key: "elifs", index: 0 })
+    const $elseif = $if.find(t.ElseIf, { key: "elifs", index: 0 })
 
-    expect($elseif.find("CallExpression", { key: "test" })).toMatchObject({
+    expect($elseif.find(t.CallExpression, { key: "test" })).toMatchObject({
       value: {
         callee: {
           object: {
-            type: "ThisExpression"
+            type: t.ThisExpression
           },
           property: {
             name: "bar"
@@ -289,26 +325,26 @@ describe("parseAst function", () => {
       }
     })
 
-    expect($elseif.find("Element", { key: "then", index: 0 })).toMatchObject({
+    expect($elseif.find(t.Element, { key: "then", index: 0 })).toMatchObject({
       value: {
         attributes: [],
         name: "div",
         children: [
           {
-            type: "Text",
+            type: t.Text,
             value: "bar"
           }
         ]
       }
     })
 
-    expect($if.find("Element", { key: "otherwise", index: 0 })).toMatchObject({
+    expect($if.find(t.Element, { key: "otherwise", index: 0 })).toMatchObject({
       value: {
         attributes: [],
         name: "div",
         children: [
           {
-            type: "Text",
+            type: t.Text,
             value: "baz"
           }
         ]
@@ -325,45 +361,87 @@ describe("parseAst function", () => {
         }
     `)
 
-    expect(result).toEqual([
-      {
-        type: "For",
-        item: gen(genIdentifier("item")),
-        items: genThisCallExpression(genIdentifier("items")),
-        track: gen(
-          genMemberExpression(
-            gen(genCallExpression(gen(genIdentifier("item")))),
-            gen(genIdentifier("id"))
-          )
-        ),
+    const $for = astHelper(result).find(t.For, { parent: null })
+
+    expect(
+      $for.find(t.Identifier, { parent: t.For, key: "item" })
+    ).toMatchObject({
+      value: {
+        type: t.Identifier,
+        name: "item"
+      }
+    })
+
+    expect(
+      $for.find(t.CallExpression, { parent: t.For, key: "items" })
+    ).toMatchObject({
+      value: {
+        type: t.CallExpression,
+        callee: {
+          type: t.MemberExpression,
+          object: {
+            type: t.ThisExpression
+          },
+          property: {
+            type: t.Identifier,
+            name: "items"
+          }
+        },
+        arguments: []
+      }
+    })
+
+    expect(
+      $for.find(t.MemberExpression, { parent: t.For, key: "track" })
+    ).toMatchObject({
+      value: {
+        type: t.MemberExpression,
+        object: {
+          type: t.CallExpression,
+          callee: {
+            type: t.Identifier,
+            name: "item"
+          },
+          arguments: []
+        },
+        property: {
+          type: t.Identifier,
+          name: "id"
+        }
+      }
+    })
+
+    expect(
+      $for.find(t.Element, { parent: t.For, key: "children", index: 0 })
+    ).toMatchObject({
+      value: {
+        type: t.Element,
+        name: "div",
+        attributes: [],
         children: [
           {
-            type: "Element",
-            name: "div",
-            attributes: [],
-            children: [
-              {
-                type: "Text",
-                value: "foo"
-              }
-            ]
-          }
-        ],
-        empty: [
-          {
-            type: "Element",
-            name: "div",
-            attributes: [],
-            children: [
-              {
-                type: "Text",
-                value: "bar"
-              }
-            ]
+            type: t.Text,
+            value: "foo"
           }
         ]
       }
-    ])
+    })
+
+    expect(
+      $for.find(t.Element, { parent: t.For, key: "empty", index: 0 })
+    ).toMatchObject({
+      value: {
+        type: t.Element,
+        name: "div",
+        attributes: [],
+        children: [
+          {
+            type: t.Text,
+            value: "bar"
+          }
+        ]
+      }
+    })
   })
 
   it("should parse nested @if statements", () => {
@@ -376,33 +454,59 @@ describe("parseAst function", () => {
         }
     `)
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "If",
-        test: genThisCallExpression(genIdentifier("foo")),
+        type: t.If,
+        test: {
+          type: t.CallExpression,
+          callee: {
+            type: t.MemberExpression,
+            object: {
+              type: t.ThisExpression
+            },
+            property: {
+              type: t.Identifier,
+              name: "foo"
+            }
+          },
+          arguments: []
+        },
         then: [
           {
-            type: "Element",
+            type: t.Element,
             name: "div",
             attributes: [],
             children: [
               {
-                type: "Text",
+                type: t.Text,
                 value: "foo"
               }
             ]
           },
           {
-            type: "If",
-            test: genThisCallExpression(genIdentifier("bar")),
+            type: t.If,
+            test: {
+              type: t.CallExpression,
+              callee: {
+                type: t.MemberExpression,
+                object: {
+                  type: t.ThisExpression
+                },
+                property: {
+                  type: t.Identifier,
+                  name: "bar"
+                }
+              },
+              arguments: []
+            },
             then: [
               {
-                type: "Element",
+                type: t.Element,
                 name: "div",
                 attributes: [],
                 children: [
                   {
-                    type: "Text",
+                    type: t.Text,
                     value: "bar"
                   }
                 ]
@@ -421,25 +525,47 @@ describe("parseAst function", () => {
         }
     `)
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       {
-        type: "For",
-        item: gen(genIdentifier("item")),
-        items: genThisCallExpression(genIdentifier("items")),
-        track: gen(
-          genMemberExpression(
-            gen(genCallExpression(gen(genIdentifier("item")))),
-            gen(genIdentifier("id"))
-          )
-        ),
+        type: t.For,
+        item: { type: t.Identifier, name: "item" },
+        items: {
+          type: t.CallExpression,
+          callee: {
+            type: t.MemberExpression,
+            object: {
+              type: t.ThisExpression
+            },
+            property: {
+              type: t.Identifier,
+              name: "items"
+            }
+          },
+          arguments: []
+        },
+        track: {
+          type: t.MemberExpression,
+          object: {
+            type: t.CallExpression,
+            callee: {
+              type: t.Identifier,
+              name: "item"
+            },
+            arguments: []
+          },
+          property: {
+            type: t.Identifier,
+            name: "id"
+          }
+        },
         children: [
           {
-            type: "Element",
+            type: t.Element,
             name: "div",
             attributes: [],
             children: [
               {
-                type: "Text",
+                type: t.Text,
                 value: "foo"
               }
             ]

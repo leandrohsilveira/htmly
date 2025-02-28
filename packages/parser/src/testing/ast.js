@@ -27,12 +27,12 @@
   AnyNode
 } from "acorn"
 @import { Node } from "estree"
-@import { AstNode } from "../types.js"
+@import { AstNode, AstNodeAttribute } from "../types.js"
 */
 import { walk } from "estree-walker"
 import { expect } from "vitest"
 
-/** @typedef {AstNode['type'] | AnyNode['type']} NodeTypes */
+/** @typedef {AstNode['type'] | AnyNode['type'] | AstNodeAttribute['type']} NodeTypes */
 
 /**
  * @typedef AstHelperFinderOptions
@@ -49,6 +49,90 @@ import { expect } from "vitest"
 /**
  * @typedef {AstHelper & { value: AstNode | Node | null }} AstHelperChild
  */
+
+/** @type {{ [K in NodeTypes]: K }} */
+export const t = {
+  Attribute: "Attribute",
+  Expression: "Expression",
+  Literal: "Literal",
+  Program: "Program",
+  SwitchCase: "SwitchCase",
+  CatchClause: "CatchClause",
+  Property: "Property",
+  Super: "Super",
+  SpreadElement: "SpreadElement",
+  TemplateElement: "TemplateElement",
+  ObjectPattern: "ObjectPattern",
+  ArrayPattern: "ArrayPattern",
+  RestElement: "RestElement",
+  AssignmentPattern: "AssignmentPattern",
+  ClassBody: "ClassBody",
+  MethodDefinition: "MethodDefinition",
+  MetaProperty: "MetaProperty",
+  ImportAttribute: "ImportAttribute",
+  ImportSpecifier: "ImportSpecifier",
+  ImportDefaultSpecifier: "ImportDefaultSpecifier",
+  ImportNamespaceSpecifier: "ImportNamespaceSpecifier",
+  ExportSpecifier: "ExportSpecifier",
+  PropertyDefinition: "PropertyDefinition",
+  PrivateIdentifier: "PrivateIdentifier",
+  StaticBlock: "StaticBlock",
+  VariableDeclarator: "VariableDeclarator",
+  ArrayExpression: "ArrayExpression",
+  ArrowFunctionExpression: "ArrowFunctionExpression",
+  AssignmentExpression: "AssignmentExpression",
+  AwaitExpression: "AwaitExpression",
+  BinaryExpression: "BinaryExpression",
+  BlockStatement: "BlockStatement",
+  BreakStatement: "BreakStatement",
+  CallExpression: "CallExpression",
+  ChainExpression: "ChainExpression",
+  ClassDeclaration: "ClassDeclaration",
+  ClassExpression: "ClassExpression",
+  ConditionalExpression: "ConditionalExpression",
+  ContinueStatement: "ContinueStatement",
+  DebuggerStatement: "DebuggerStatement",
+  DoWhileStatement: "DoWhileStatement",
+  Element: "Element",
+  ElseIf: "ElseIf",
+  EmptyStatement: "EmptyStatement",
+  ExportAllDeclaration: "ExportAllDeclaration",
+  ExportDefaultDeclaration: "ExportDefaultDeclaration",
+  ExportNamedDeclaration: "ExportNamedDeclaration",
+  ExpressionStatement: "ExpressionStatement",
+  For: "For",
+  ForInStatement: "ForInStatement",
+  ForOfStatement: "ForOfStatement",
+  ForStatement: "ForStatement",
+  FunctionDeclaration: "FunctionDeclaration",
+  FunctionExpression: "FunctionExpression",
+  Identifier: "Identifier",
+  If: "If",
+  IfStatement: "IfStatement",
+  ImportDeclaration: "ImportDeclaration",
+  ImportExpression: "ImportExpression",
+  LabeledStatement: "LabeledStatement",
+  LogicalExpression: "LogicalExpression",
+  MemberExpression: "MemberExpression",
+  NewExpression: "NewExpression",
+  ObjectExpression: "ObjectExpression",
+  ParenthesizedExpression: "ParenthesizedExpression",
+  ReturnStatement: "ReturnStatement",
+  SequenceExpression: "SequenceExpression",
+  SwitchStatement: "SwitchStatement",
+  TaggedTemplateExpression: "TaggedTemplateExpression",
+  TemplateLiteral: "TemplateLiteral",
+  Text: "Text",
+  ThisExpression: "ThisExpression",
+  ThrowStatement: "ThrowStatement",
+  TryStatement: "TryStatement",
+  UnaryExpression: "UnaryExpression",
+  UpdateExpression: "UpdateExpression",
+  VariableDeclaration: "VariableDeclaration",
+  WhileStatement: "WhileStatement",
+  WithStatement: "WithStatement",
+  YieldExpression: "YieldExpression"
+}
 
 /**
  *
