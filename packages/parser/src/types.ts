@@ -103,6 +103,7 @@ export interface BaseOptions {
 
 export interface ScanOptions extends BaseOptions {
   prefix?: string
+  genCssScope?: (componentName: string) => string
 }
 
 export interface TransformOptions {
@@ -120,10 +121,12 @@ export interface FoundComponentInfo {
 }
 
 export interface ComponentInfo {
+  name: string
   baseName: string
   context: string
   template: string
   component: string
   controller: string
   styles?: string
+  scope?: string
 }

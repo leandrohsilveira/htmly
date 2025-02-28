@@ -5,7 +5,7 @@ import path from "node:path"
 import process from "node:process"
 import { walk } from "./fs.js"
 
-export const TEMPLATE_REGEX = /component\.htmly?$/
+export const TEMPLATE_REGEX = /component\.html$/
 export const STYLE_REGEX = /component.(css|scss|sass|less|pcss)$/
 export const CONTROLLER_REGEX = /component\.(js|ts|cjs|mjs|cts|mts)$/
 
@@ -20,6 +20,7 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
   const root = path.resolve(cwd, scanDir)
   /** @type {Record<string, FoundComponentInfo>} */
   const found = {}
+
   for await (const currentPath of await walk(root)) {
     if (!isComponentFile(currentPath)) continue
     const { name, baseName } = componentName(root, currentPath, options)
@@ -29,6 +30,8 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
     if (CONTROLLER_REGEX.test(currentPath)) found[name].controller = currentPath
     if (STYLE_REGEX.test(currentPath)) found[name].styles = currentPath
   }
+
+  const genCssScope = options.genCssScope ?? defaultGenCssScope
 
   /** @type {Record<string, ComponentInfo>} */
   const infos = {}
@@ -42,10 +45,12 @@ export async function scanComponents(scanDir, outputDir, options = {}) {
     infos[name] = {
       context,
       component,
+      name,
       baseName: info.baseName,
       controller: info.controller,
       template: info.template,
-      styles: info.styles
+      styles: info.styles,
+      scope: info.styles ? genCssScope(name) : undefined
     }
   }
 
@@ -79,7 +84,7 @@ function componentName(scanDir, file, options = {}) {
  * @param {string} scanDir
  * @param {string} file
  * @param {ScanOptions} [options]
- * @return {Promise<{ name: string, info: ComponentInfo } | null>}
+ * @return {Promise<ComponentInfo | null>}
  */
 export async function detectComponent(scanDir, file, options = {}) {
   if (isComponentFile(file)) {
@@ -96,17 +101,18 @@ export async function detectComponent(scanDir, file, options = {}) {
     }
 
     if (found.template && found.controller) {
+      const genCssScope = options.genCssScope ?? defaultGenCssScope
+
       const component = path.resolve(context, `${name}.js`)
       return {
         name,
-        info: {
-          baseName,
-          context,
-          component,
-          controller: found.controller,
-          template: found.template,
-          styles: found.styles
-        }
+        baseName,
+        context,
+        component,
+        controller: found.controller,
+        template: found.template,
+        styles: found.styles,
+        scope: found.styles ? genCssScope(name) : undefined
       }
     }
   }
@@ -123,4 +129,13 @@ export function isComponentFile(file) {
     STYLE_REGEX.test(file) ||
     CONTROLLER_REGEX.test(file)
   )
+}
+
+/**
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+function defaultGenCssScope(name) {
+  return `_${name}_`
 }

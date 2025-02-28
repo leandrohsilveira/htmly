@@ -300,18 +300,19 @@ export function $for({ items, trackBy, empty }, forRef) {
 /**
  * @template {ComponentInputDefinition} I
  * @template {Record<string, unknown>} C
+ * @param {string} name
  * @param {Controller<I, C>} controller
  * @param {ComponentElementRef<C, I>} componentRefs
  * @returns {ComponentRef<I>}
  */
-export function $c(controller, componentRefs) {
+export function $c(name, controller, componentRefs) {
   return props =>
     elementRef(() => {
       /** @type {ElementRef | undefined | null} */
       let child = undefined
 
       return {
-        name: "component",
+        name,
         get elements() {
           assert(
             child !== undefined,

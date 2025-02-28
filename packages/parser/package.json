@@ -4,13 +4,13 @@
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",
-  "author": "",
+  "author": "Leandro Hinckel Silveira (leandro.hinckel@gmail.com)",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@htmly/core": "*",
     "acorn": "^8.14.0",
-    "ast-query": "^2.0.0",
+    "css-tree": "^3.1.0",
     "escodegen": "^2.1.0",
     "estree-walker": "^3.0.3",
     "jscodeshift": "^17.1.2"

@@ -44,7 +44,7 @@ const {
 } = jscodeshift
 
 /**
- * @typedef Context
+ * @typedef TransformContext
  * @property {Set<string>} elements
  * @property {Set<string>} renderers
  * @property {Set<string>} components
@@ -60,7 +60,7 @@ const {
 export function transform({ template, info, infos, resolver }) {
   const controller = relative(info.context, info.controller)
 
-  /** @type {Context} */
+  /** @type {TransformContext} */
   const context = {
     info,
     infos,
@@ -119,6 +119,7 @@ export function transform({ template, info, infos, resolver }) {
   component.body.push(
     exportDefaultDeclaration(
       callExpression(identifier("$c"), [
+        literal(info.name),
         identifier("controller"),
         functionExpression(
           null,
@@ -134,7 +135,7 @@ export function transform({ template, info, infos, resolver }) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNode[]} nodes
  * @returns {CallExpression | undefined}
  */
@@ -148,7 +149,7 @@ function onFragment(root, nodes) {
 }
 
 /**
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNode[]} nodes
  */
 function onNodes(root, nodes) {
@@ -163,7 +164,7 @@ function onNodes(root, nodes) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNode} node
  * @returns {CallExpression | undefined}
  */
@@ -186,7 +187,7 @@ function onNode(root, node) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNodeElement} node
  * @returns {CallExpression | undefined}
  */
@@ -198,7 +199,7 @@ function onElement(root, node) {
 
   const children = onFragment(root, node.children)
 
-  const { attrs, props, events } = onAttributes(node.attributes)
+  const { attrs, props, events } = onAttributes(root, node)
 
   const input = objectExpression([])
 
@@ -226,16 +227,30 @@ function onElement(root, node) {
 }
 
 /**
- * @param {AstNodeAttribute[]} attributes
+ * @param {TransformContext} root
+ * @param {AstNodeElement} node
  * @returns {Record<'attrs' | 'props' | 'events', Property[]>}
  */
-function onAttributes(attributes) {
+function onAttributes(root, node) {
+  const attributes = node.attributes
   /** @type {Property[]} */
   const attrs = []
   /** @type {Property[]} */
   const props = []
   /** @type {Property[]} */
   const events = []
+
+  if (root.info.scope && node.name !== "slot" && node.name !== "template")
+    node.attributes.push({
+      type: "Attribute",
+      kind: "Flag",
+      name: root.info.scope,
+      value: {
+        type: "Expression",
+        value: { type: "Literal", start: 0, end: 0, value: true }
+      }
+    })
+
   for (const attr of attributes) {
     switch (attr.kind) {
       case "Literal":
@@ -244,7 +259,7 @@ function onAttributes(attributes) {
         )
         break
       case "Flag":
-        attrs.push(property("init", literal(attr.name), literal(true)))
+        attrs.push(property("init", literal(attr.name), literal("")))
         break
       case "Property":
         props.push(
@@ -267,7 +282,7 @@ function onAttributes(attributes) {
 }
 
 /**
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNodeExpression | AstNodeText} input
  * @returns {CallExpression}
  */
@@ -293,7 +308,7 @@ function expression(value) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNodeIf | AstNodeElseIf} node
  * @return {CallExpression | undefined}
  */
@@ -343,7 +358,7 @@ function onIf(root, node) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNodeFor} node
  */
 function onFor(root, node) {
@@ -386,7 +401,7 @@ function onFor(root, node) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNodeElement} node
  * @returns {CallExpression}
  */
@@ -396,7 +411,7 @@ function onComponent(root, node) {
 
   root.components.add(tagName)
 
-  const { attrs, props, events } = onAttributes(node.attributes)
+  const { attrs, props, events } = onAttributes(root, node)
 
   const slots = onComponentChild(root, node.children)
 
@@ -422,7 +437,7 @@ function onComponent(root, node) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNode[]} nodes
  * @return {ObjectExpression}
  */
@@ -522,7 +537,7 @@ function onComponentChild(root, nodes) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {CallExpression[]} calls
  * @returns {CallExpression | undefined}
  */
@@ -535,14 +550,14 @@ function toFragment(root, calls) {
 
 /**
  *
- * @param {Context} root
+ * @param {TransformContext} root
  * @param {AstNodeElement} node
  * @returns {CallExpression}
  */
 function onSlot(root, node) {
   root.componentFnParams.add("$$slots")
 
-  const { props } = onAttributes(node.attributes)
+  const { props } = onAttributes(root, node)
 
   const nameAttr = node.attributes.find(attr => attr.name === "name")
 

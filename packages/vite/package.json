@@ -4,13 +4,14 @@
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "module",
-  "author": "",
+  "author": "Leandro Hinckel Silveira (leandro.hinckel@gmail.com)",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@htmly/core": "*",
     "@htmly/parser": "*",
-    "escodegen": "^2.1.0"
+    "escodegen": "^2.1.0",
+    "lightningcss": "^1.29.1"
   },
   "exports": {
     ".": {

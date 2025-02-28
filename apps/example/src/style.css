@@ -82,11 +82,9 @@ input:focus {
   background-color: var(--input-bg-i);
 }
 
-table {
-  th,
-  td {
-    padding: 0.5rem;
-  }
+table th,
+table td {
+  padding: 0.5rem;
 }
 
 a {

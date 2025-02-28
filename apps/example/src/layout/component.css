@@ -1,3 +1,9 @@
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 h1 {
-  text-decoration: underline;
+  font-size: 1.75rem;
 }
