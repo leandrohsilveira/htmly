@@ -1,0 +1,18 @@
+table {
+  background: var(--table-bg);
+  border: 1px solid var(--table-fg);
+  border-radius: 0.25rem;
+}
+
+thead tr th {
+  margin: 0;
+  border-bottom: 2px solid var(--table-fg);
+}
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--table-fg);
+}
+
+tfoot tr td {
+  border-top: 2px solid var(--table-fg);
+}
