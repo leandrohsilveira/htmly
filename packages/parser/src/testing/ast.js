@@ -23,10 +23,77 @@
   VariableDeclarator,
   VariableDeclaration,
   MemberExpression,
-  PrivateIdentifier
+  PrivateIdentifier,
+  AnyNode
 } from "acorn"
+@import { Node } from "estree"
+@import { AstNode } from "../types.js"
 */
+import { walk } from "estree-walker"
 import { expect } from "vitest"
+
+/** @typedef {AstNode['type'] | AnyNode['type']} NodeTypes */
+
+/**
+ * @typedef AstHelperFinderOptions
+ * @property {NodeTypes | null} [parent]
+ * @property {string} [key]
+ * @property {number} [index]
+ */
+
+/**
+ * @typedef AstHelper
+ * @property {(type: NodeTypes, options?: AstHelperFinderOptions ) => AstHelperChild} find
+ */
+
+/**
+ * @typedef {AstHelper & { value: AstNode | Node | null }} AstHelperChild
+ */
+
+/**
+ *
+ * @param {AstNode[] | AnyNode} nodes
+ * @returns {AstHelper}
+ */
+export function astHelper(nodes) {
+  return {
+    find(type, { parent, key, index } = {}) {
+      /** @type {*} */
+      let resolved = null
+
+      walk(/** @type {*} */ (nodes), {
+        enter(node, _parent, _key, _index) {
+          if (resolved) return this.skip()
+          if (
+            node.type === type &&
+            (parent === undefined || (_parent?.type ?? null) === parent) &&
+            (key === undefined || (key ?? null) === (_key ?? null)) &&
+            (index === undefined || (index ?? null) === (_index ?? null))
+          ) {
+            resolved = node
+            return this.skip()
+          }
+        },
+        leave() {
+          if (resolved) return this.skip()
+        }
+      })
+
+      if (resolved) {
+        return {
+          value: resolved,
+          find: astHelper(resolved).find
+        }
+      }
+      return {
+        value: `Resolution failed at: [type: ${type}, ${JSON.stringify({ parent, key, index })}]\n\n${JSON.stringify(nodes, null, 2)}`,
+        find() {
+          return this
+        }
+      }
+    }
+  }
+}
 
 /**
  *
@@ -383,5 +450,22 @@ export function genLiteral(value) {
     end: 0,
     value,
     raw: JSON.stringify(value)
+  }
+}
+
+/**
+ *
+ * @param {RegExp} value
+ * @returns {Literal}
+ */
+export function genRegex(value) {
+  return {
+    type: "Literal",
+    start: 0,
+    end: 0,
+    regex: {
+      pattern: value.source,
+      flags: value.flags
+    }
   }
 }

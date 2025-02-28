@@ -6,7 +6,9 @@ import {
   genCallExpression,
   genIdentifier,
   genLiteral,
-  genMemberExpression
+  genMemberExpression,
+  genRegex,
+  astHelper
 } from "./testing/ast.js"
 
 describe("parseAst function", () => {
@@ -211,6 +213,26 @@ describe("parseAst function", () => {
     ])
   })
 
+  it("should parse expressions with regexp test with ternary operator", () => {
+    const result = parseAst("<div>{{ /^Le/.test(this.name()) }}</div>")
+
+    const helper = astHelper(result)
+
+    expect(
+      helper
+        .find("Expression", { parent: "Element" })
+        .find("CallExpression")
+        .find("MemberExpression")
+        .find("Literal")
+    ).toMatchObject({
+      value: {
+        regex: {
+          pattern: "^Le"
+        }
+      }
+    })
+  })
+
   it("it should parse @if statements", () => {
     const result = parseAst(`
         @if (this.foo()) {
@@ -222,57 +244,76 @@ describe("parseAst function", () => {
         }
     `)
 
-    expect(result).toEqual([
-      {
-        type: "If",
-        test: genThisCallExpression(genIdentifier("foo")),
-        then: [
-          {
-            type: "Element",
-            name: "div",
-            attributes: [],
-            children: [
-              {
-                type: "Text",
-                value: "foo"
-              }
-            ]
+    const $if = astHelper(result).find("If")
+
+    expect($if.find("CallExpression", { key: "test" })).toMatchObject({
+      value: {
+        callee: {
+          object: {
+            type: "ThisExpression"
+          },
+          property: {
+            name: "foo"
           }
-        ],
-        elifs: [
+        },
+        arguments: []
+      }
+    })
+
+    expect($if.find("Element", { key: "then", index: 0 })).toMatchObject({
+      value: {
+        attributes: [],
+        name: "div",
+        children: [
           {
-            type: "ElseIf",
-            test: genThisCallExpression(genIdentifier("bar")),
-            then: [
-              {
-                type: "Element",
-                name: "div",
-                attributes: [],
-                children: [
-                  {
-                    type: "Text",
-                    value: "bar"
-                  }
-                ]
-              }
-            ]
-          }
-        ],
-        otherwise: [
-          {
-            type: "Element",
-            name: "div",
-            attributes: [],
-            children: [
-              {
-                type: "Text",
-                value: "baz"
-              }
-            ]
+            type: "Text",
+            value: "foo"
           }
         ]
       }
-    ])
+    })
+
+    const $elseif = $if.find("ElseIf", { key: "elifs", index: 0 })
+
+    expect($elseif.find("CallExpression", { key: "test" })).toMatchObject({
+      value: {
+        callee: {
+          object: {
+            type: "ThisExpression"
+          },
+          property: {
+            name: "bar"
+          }
+        },
+        arguments: []
+      }
+    })
+
+    expect($elseif.find("Element", { key: "then", index: 0 })).toMatchObject({
+      value: {
+        attributes: [],
+        name: "div",
+        children: [
+          {
+            type: "Text",
+            value: "bar"
+          }
+        ]
+      }
+    })
+
+    expect($if.find("Element", { key: "otherwise", index: 0 })).toMatchObject({
+      value: {
+        attributes: [],
+        name: "div",
+        children: [
+          {
+            type: "Text",
+            value: "baz"
+          }
+        ]
+      }
+    })
   })
 
   it("should parse @empty statement for @for statements", () => {
