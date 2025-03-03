@@ -1,19 +1,30 @@
 <form (onsubmit)="(this.onsubmit)" class="todo-form">
-  <label for="name">
+  <label for="name" [class.error]="this.error()" [class.dirty]="this.dirty()">
     <legend>Task name</legend>
     <input
       type="text"
       name="name"
       id="name"
-      [value]="this.value()?.name ?? ''"
+      [value]="this.name()"
+      (oninput)="(this.oninput)"
     />
+    <small class="error">{{ this.error() ?? "" }}</small>
   </label>
-  <button type="submit">
-    @if (!!this.edit()) {
+  <button
+    type="submit"
+    [disabled]="!!this.error() || this.name() === (this.todo()?.name ?? '')"
+  >
+    @if (!!this.isEdit()) {
       Update
     } @else {
       Add
     }
   </button>
-  <button type="reset" (onclick)="(this.oncancel)">Cancel</button>
+  <button
+    type="button"
+    [disabled]="!this.isEdit() && !this.dirty()"
+    (onclick)="(this.oncancel)"
+  >
+    Cancel
+  </button>
 </form>

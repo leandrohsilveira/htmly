@@ -5,6 +5,7 @@
 
   --button-bg: #d0d0d0;
   --button-bg-i: #ffffff;
+  --button-bg-d: #ffffff20;
   --button-fg: #242424;
 
   --table-bg: transparent;
@@ -34,6 +35,7 @@
 
     --button-bg: #242424;
     --button-bg-i: #4a4a4a;
+    --button-bg-d: #24242420;
     --button-fg: #ffffff;
 
     --table-bg: transparent;
@@ -109,19 +111,24 @@ button {
   color: var(--button-fg);
   cursor: pointer;
   transition: border-color 0.25s;
+
+  &:disabled {
+    background-color: var(--button-bg-d);
+    cursor: not-allowed;
+  }
 }
 
-button:focus,
-button:hover {
+button:focus:not(:disabled),
+button:hover:not(:disabled) {
   background-color: var(--button-bg-i);
 }
 
-input:focus,
-input:focus-visible,
-input:focus-within,
-button:focus,
-button:focus-visible,
-button:focus-within {
+input:focus:not(:disabled),
+input:focus-visible:not(:disabled),
+input:focus-within:not(:disabled),
+button:focus:not(:disabled),
+button:focus-visible:not(:disabled),
+button:focus-within:not(:disabled) {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
 }

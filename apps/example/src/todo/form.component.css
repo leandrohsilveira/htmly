@@ -1,5 +1,37 @@
 form {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 0.5rem;
+}
+
+small.error {
+  display: none;
+  color: red;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 102px;
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  legend::after {
+    content: "*";
+    color: red;
+  }
+
+  &.error.dirty {
+    color: red;
+
+    small.error {
+      display: block;
+    }
+
+    input {
+      color: red;
+      border-color: red;
+    }
+  }
 }

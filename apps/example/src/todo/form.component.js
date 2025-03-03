@@ -2,7 +2,7 @@
 @import { Input } from "@htmly/core"
 @import { Todo } from "./types.js"
 */
-import { computed } from "@htmly/core"
+import { computed, effect, signal } from "@htmly/core"
 
 /**
  * @typedef TodoFormProps
@@ -23,23 +23,48 @@ export default function TodoFormController({
   props: { value },
   events: { onsubmit, oncancel }
 }) {
-  const edit = computed(() => !!value())
+  const isEdit = computed(() => !!value())
+
+  const name = signal("")
+
+  const dirty = signal(false)
+
+  effect(() => {
+    const _name = value()?.name
+    if (_name) {
+      name.set(_name)
+      dirty.set(false)
+    }
+  })
+
   return {
-    edit,
+    todo: value,
+    isEdit,
     value,
+    name,
+    error: computed(() => (name() ? null : "Name is required")),
+    dirty,
     /**
      * @param {Event} e
      */
     onsubmit(e) {
       e.preventDefault()
-      const form = /** @type {HTMLFormElement} */ (e.target)
-      const input = /** @type {HTMLInputElement} */ (
-        form.elements.namedItem("name")
-      )
-      const name = input.value
-      onsubmit({ name })
-      input.value = ""
+      onsubmit({ name: name() })
+      name.set("")
+      dirty.set(false)
     },
-    oncancel
+    /**
+     * @param {Event} e
+     */
+    oninput(e) {
+      const input = /** @type {HTMLInputElement} */ (e.target)
+      name.set(input.value)
+      dirty.set(true)
+    },
+    oncancel() {
+      name.set("")
+      dirty.set(false)
+      oncancel()
+    }
   }
 }
