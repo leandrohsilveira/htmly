@@ -19,6 +19,10 @@
     "./dom": {
       "types": "./src/dom/index.d.ts",
       "default": "./src/dom/index.js"
+    },
+    "./config": {
+      "types": "./src/config/index.d.ts",
+      "default": "./src/config/index.js"
     }
   },
   "dependencies": {

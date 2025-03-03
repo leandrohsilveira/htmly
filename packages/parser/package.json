@@ -13,7 +13,8 @@
     "css-tree": "^3.1.0",
     "escodegen": "^2.1.0",
     "estree-walker": "^3.0.3",
-    "jscodeshift": "^17.1.2"
+    "jscodeshift": "^17.1.2",
+    "unconfig": "^7.2.0"
   },
   "exports": {
     ".": {

@@ -130,3 +130,8 @@ export interface ComponentInfo {
   styles?: string
   scope?: string
 }
+
+export interface LoadConfigOptions {
+  path?: string
+  cwd?: string
+}

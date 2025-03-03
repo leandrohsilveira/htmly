@@ -1,0 +1,15 @@
+<app-layout>
+  <app-todo-form
+    [value]="this.editTask()"
+    (onsubmit)="(this.onsubmit)"
+    (oncancel)="(this.oncancel)"
+  />
+
+  <app-todo-table
+    [tasks]="this.tasks()"
+    [editId]="this.editTask()?.id"
+    (onremove)="(this.onremove)"
+    (onedit)="(this.onedit)"
+    (ontoggle)="(this.ontoggle)"
+  />
+</app-layout>

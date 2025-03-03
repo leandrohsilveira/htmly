@@ -24,27 +24,6 @@ export default function AppController() {
     editTask,
 
     /**
-     *
-     * @param {Event} e
-     */
-    ontoggle(e) {
-      e.preventDefault()
-      const target = /** @type {HTMLButtonElement} */ (e.target)
-      const id = target.value
-      allTasks.set(
-        allTasks().map(task => {
-          if (task.id === id) {
-            return {
-              ...task,
-              done: !task.done
-            }
-          }
-          return task
-        })
-      )
-    },
-    /**
-     *
      * @param {Pick<Todo, 'name'>} payload
      */
     onsubmit({ name }) {
@@ -74,24 +53,34 @@ export default function AppController() {
         editTask.set(null)
       }
     },
+
     /**
-     *
-     * @param {Event} e
+     * @param {string} id
      */
-    onedit(e) {
-      e.preventDefault()
-      const target = /** @type {HTMLButtonElement} */ (e.target)
-      const id = target.value
+    ontoggle(id) {
+      allTasks.set(
+        allTasks().map(task => {
+          if (task.id === id) {
+            return {
+              ...task,
+              done: !task.done
+            }
+          }
+          return task
+        })
+      )
+    },
+
+    /**
+     * @param {string} id
+     */
+    onedit(id) {
       editTask.set(allTasks().find(item => item.id === id) ?? null)
     },
     /**
-     *
-     * @param {Event} e
+     * @param {string} id
      */
-    onremove(e) {
-      e.preventDefault()
-      const target = /** @type {HTMLButtonElement} */ (e.target)
-      const id = target.value
+    onremove(id) {
       allTasks.set(allTasks().filter(item => item.id !== id))
     },
 

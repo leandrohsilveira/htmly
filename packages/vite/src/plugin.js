@@ -1,6 +1,7 @@
 /**
 @import {Plugin, ViteDevServer, ResolvedConfig} from "vite"
-@import {ComponentInfo} from "@htmly/parser"
+@import {ResolvedHtmlyConfig} from "@htmly/core/config"
+@import {ComponentInfo, LoadConfigOptions} from "@htmly/parser"
  */
 import { assert } from "@htmly/core"
 import {
@@ -11,7 +12,10 @@ import {
   STYLE_REGEX,
   TEMPLATE_REGEX,
   transform,
-  scopeCss
+  scopeCss,
+  loadConfig,
+  mergeInfos,
+  findNamespace
 } from "@htmly/parser"
 import { generate } from "escodegen"
 import path from "node:path"
@@ -19,22 +23,25 @@ import { preprocessCSS } from "vite"
 import { generateRandomString } from "./util.js"
 
 /**
+ * @param {LoadConfigOptions} [options]
  * @returns {Plugin}
  */
-export function vitePlugin() {
-  const scanDir = "./src"
+export function vitePlugin(options) {
   const templates = new Set()
   const styles = new Set()
   const scopes = new Set()
 
   /** @type {Record<string, ComponentInfo>} */
-  let infos
+  let infos = {}
 
   /** @type {ViteDevServer} */
   let server
 
   /** @type {ResolvedConfig} */
-  let config
+  let viteConfig
+
+  /** @type {ResolvedHtmlyConfig} */
+  let htmlyConfig
 
   /** @type {((componentName: string) => string) | undefined} */
   let genCssScope = undefined
@@ -44,14 +51,16 @@ export function vitePlugin() {
     enforce: "pre",
     config() {
       return {
+        root: options?.cwd,
         css: {
           transformer: "lightningcss"
         }
       }
     },
-    configResolved(_config) {
-      config = _config
-      if (config.command === "build") {
+    async configResolved(_config) {
+      viteConfig = _config
+      htmlyConfig = (await loadConfig(options)).config
+      if (viteConfig.command === "build") {
         genCssScope = () => {
           let size = 3
           let scope
@@ -69,21 +78,28 @@ export function vitePlugin() {
       server = viteServer
     },
     async buildStart() {
-      infos = await scanComponents(
-        scanDir,
-        info => {
-          const context = info.template ?? info.controller ?? info.styles
-          assert(
-            context !== undefined,
-            `Unable to determine context for ${info.baseName}`
-          )
-          return path.dirname(context)
-        },
-        {
-          cwd: config.root,
-          genCssScope
-        }
-      )
+      for (const [prefix, namespace] of Object.entries(
+        htmlyConfig.namespaces
+      )) {
+        const _infos = await scanComponents(
+          namespace.scanDir,
+          info => {
+            const context = info.template ?? info.controller ?? info.styles
+            assert(
+              context !== undefined,
+              `Unable to determine context for ${info.baseName}`
+            )
+            return path.dirname(context)
+          },
+          {
+            prefix,
+            cwd: viteConfig.root,
+            genCssScope
+          }
+        )
+
+        infos = mergeInfos(_infos, infos)
+      }
     },
     async resolveId(id, importer, options) {
       const resolved = await this.resolve(id, importer, options)
@@ -94,7 +110,7 @@ export function vitePlugin() {
         importer
       ) {
         templates.add(resolved.id)
-        if (config.command === "build")
+        if (viteConfig.command === "build")
           return {
             ...resolved,
             id: `${resolved.id}?htmly`
@@ -112,10 +128,6 @@ export function vitePlugin() {
     async transform(src, id) {
       const fileName = id.replace(/\?htmly$/, "")
       if (templates.has(fileName)) {
-        assert(
-          infos !== undefined,
-          "Component info map should not be undefined at watchChange event"
-        )
         const componentName = Object.keys(infos).find(
           name => infos[name].template === fileName
         )
@@ -141,10 +153,6 @@ export function vitePlugin() {
         }
       }
       if (styles.has(id)) {
-        assert(
-          infos !== undefined,
-          "Component info map should not be undefined at watchChange event"
-        )
         const componentName = Object.keys(infos).find(
           name => infos[name].styles === fileName
         )
@@ -154,7 +162,7 @@ export function vitePlugin() {
         )
         const info = infos[componentName]
         if (info.scope) {
-          const { code } = await preprocessCSS(src, id, config)
+          const { code } = await preprocessCSS(src, id, viteConfig)
 
           return {
             code: scopeCss(code, info.scope)
@@ -164,7 +172,17 @@ export function vitePlugin() {
     },
     async watchChange(id, change) {
       if (change.event === "create") {
-        const detection = await detectComponent(scanDir, id)
+        const [prefix, namespace] = findNamespace(
+          htmlyConfig.namespaces,
+          id,
+          viteConfig.root
+        )
+        assert(prefix !== null, `Unable to find namespace for ${id}`)
+        const detection = await detectComponent(namespace.scanDir, id, {
+          cwd: viteConfig.root,
+          prefix,
+          genCssScope
+        })
         if (detection === null) return
         if (!infos[detection.name]) {
           this.info({

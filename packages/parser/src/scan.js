@@ -1,9 +1,11 @@
 /**
+@import {Namespaces, NamespaceOptions} from "@htmly/core/config"
 @import {FoundComponentInfo, ComponentInfo, ScanOptions} from "./types.js"
  */
 import path from "node:path"
 import process from "node:process"
 import { walk } from "./fs.js"
+import { assert } from "@htmly/core"
 
 export const TEMPLATE_REGEX = /component\.html$/
 export const STYLE_REGEX = /component.(css|scss|sass|less|pcss)$/
@@ -120,6 +122,26 @@ export async function detectComponent(scanDir, file, options = {}) {
 }
 
 /**
+ *
+ * @param {Namespaces} namespaces
+ * @param {string} file
+ * @param {string} [cwd]
+ * @returns {[string, NamespaceOptions] | [null, null]}
+ */
+export function findNamespace(namespaces, file, cwd = process.cwd()) {
+  if (!isComponentFile(file)) return [null, null]
+
+  for (const [namespace, options] of Object.entries(namespaces)) {
+    const scanDir = path.resolve(cwd, options.scanDir)
+    if (path.matchesGlob(file, `${scanDir}/**`)) {
+      return [namespace, options]
+    }
+  }
+
+  return [null, null]
+}
+
+/**
  * @param {string} file
  * @returns {boolean}
  */
@@ -129,6 +151,21 @@ export function isComponentFile(file) {
     STYLE_REGEX.test(file) ||
     CONTROLLER_REGEX.test(file)
   )
+}
+
+/**
+ *
+ * @param {Record<string, ComponentInfo>} source
+ * @param {Record<string, ComponentInfo>} target
+ */
+export function mergeInfos(source, target) {
+  const targets = Object.keys(target)
+  const result = { ...target }
+  for (const [name, info] of Object.entries(source)) {
+    assert(!targets.includes(name), `Component "${name}" already exists`)
+    result[name] = info
+  }
+  return result
 }
 
 /**
